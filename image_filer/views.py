@@ -6,6 +6,7 @@ from django.contrib.sessions.models import Session
 from django.conf import settings
 
 from models import Folder, FolderRoot, Image, Bucket, BucketItem
+from models import tools
 
 from django import forms
 
@@ -81,7 +82,8 @@ def directory_listing(request, folder_id=None):
             'new_folder_form': new_folder_form,
             'upload_file_form': upload_file_form,
             'permissions': permissions,
-            'permstest': _userperms(folder, request)
+            'permstest': _userperms(folder, request),
+            'current_url': request.path,
         }, context_instance=RequestContext(request))
 
 def edit_folder(request, folder_id):
@@ -159,7 +161,6 @@ def upload(request, folder_id=None):
         return HttpResponseForbidden()
     elif not folder.has_add_children_permission(request):
         # the user does not have the permission to images to this folder
-        print "bad perms"
         return HttpResponseForbidden()
     
     # upload and save the file
@@ -188,28 +189,41 @@ def upload(request, folder_id=None):
                 print imageform.errors
     return HttpResponse("ok")
 
-def move_files_to_folder(request, bucket_id=None):
-    folder = Folder.objects.get( id=request.GET.get('folder_id') )
-    try:
-        ids = request.GET.get('file_ids').split(',')
-    except:
-        ids = None
-    if bucket_id:
-        bucket = Bucket.objects.get(id=bucket_id)
-        files = bucket.files.all()
-    elif ids:
-        files = Image.objects.filter(id__in=ids)
-    else:
-        return HttpResponse('nothing to do')
-    for file in files:
-        file.folder = folder
-        file.save()
-    return HttpResponse('ok')
-    
+def empty_bucket_in_folder(request):
+    if request.method=='POST':
+        folder = Folder.objects.get( id=request.POST.get('folder_id') )
+        bucket = Bucket.objects.get( id=request.POST.get('bucket_id') )
+        tools.move_files_from_bucket_to_folder(bucket, folder)
+        tools.empty_bucket(bucket)
+    return HttpResponseRedirect( request.POST.get('redirect_to', '') )
 
-def add_file_to_bucket(request):
-    pass
+def clone_bucket_to_folder(request):
+    if request.method=='POST':
+        folder = Folder.objects.get( id=request.POST.get('folder_id') )
+        bucket = Bucket.objects.get( id=request.POST.get('bucket_id') )
+        tools.move_files_from_bucket_to_folder(bucket, folder)
+        tools.empty_bucket(bucket)
+    return HttpResponseRedirect( request.POST.get('redirect_to', '') )
 
-def export_bucket(request):
-    pass
+def empty_bucket(request):
+    if request.method=='POST':
+        bucket = Bucket.objects.get( id=request.POST.get('bucket_id') )
+        tools.empty_bucket(bucket)
+    return HttpResponseRedirect( request.POST.get('redirect_to', '') )
+
+def put_file_in_bucket(request):
+    if request.method=='POST':
+        file_id = request.POST.get("file_id", None)
+        bucket = tools.get_user_bucket(request.user)
+        if file_id:
+            file = Image.objects.get(id=file_id)
+            tools.put_files_in_bucket([file], bucket)
+    return HttpResponseRedirect( request.POST.get('redirect_to', '') )
+
+def clone_files_from_bucket_to_folder(request):
+    if request.method=='POST':
+        bucket = Bucket.objects.get( id=request.POST.get('bucket_id') )
+        folder = Folder.objects.get( id=request.POST.get('folder_id') )
+        tools.clone_files_from_bucket_to_folder(bucket, folder)
+    return HttpResponseRedirect( request.POST.get('redirect_to', '') )
 

@@ -8,8 +8,12 @@ urlpatterns = patterns('image_filer.views',
     
     url(r'^directory/(?P<folder_id>\d+)/upload/$', 'upload', name='image_filer-upload'),
     url(r'^directory/upload/$', 'upload', name='image_filer-upload'),
+
+    #url(r'^file/move_to_folder/$', 'move_files_to_folder', name='image_filer-move_files_to_folder'),
     
-    url(r'^bucket/(?P<bucket_id>\d+)/move_to_folder/$', 'move_files_to_folder', name='image_filer-move_bucket_to_folder'),
-    url(r'^file/move_to_folder/$', 'move_files_to_folder', name='image_filer-move_files_to_folder'),
+    url(r'^operations/empty_bucket_in_folder/$', 'empty_bucket_in_folder', name='image_filer-empty_bucket_in_folder'),
+    url(r'^operations/clone_files_from_bucket_to_folder/$', 'clone_files_from_bucket_to_folder', name='image_filer-clone_files_from_bucket_to_folder'),
+    url(r'^operations/empty_bucket/$', 'empty_bucket', name='image_filer-empty_bucket'),    
+    url(r'^operations/put_file_in_bucket/$', 'put_file_in_bucket', name='image_filer-put_file_in_bucket'),
 
 )

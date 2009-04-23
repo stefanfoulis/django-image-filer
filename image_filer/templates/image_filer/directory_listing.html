@@ -55,10 +55,10 @@
 					</tr>
 				{% endif %}{% endif %}
             {% for file in folder_children %}
-                {% include "image_filer/include/folderlisting.html" %}
+                {% include "image_filer/include/row_folder.html" %}
             {% endfor %}
 			{% for file in folder_files %}
-                {% include "image_filer/include/folderlisting.html" %}
+                {% include "image_filer/include/row_image.html" %}
             {% endfor %}
 	{% comment %}
 			<tr>

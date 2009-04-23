@@ -65,6 +65,7 @@ class ResizeFilter(BaseFilter):
 filters.append(ResizeFilter)
 class TinyResizeFilterHack(ResizeFilter):
     name = "Tiny Resize Filter Hack"
+    identifier = "resize_simple_tiny_hack"
     def render(self, im, size_x=24, size_y=24, crop=True, crop_from='top', upscale=True):
         return super(TinyResizeFilterHack, self).render(im, size_x=size_x, size_y=size_y)
 filters.append(TinyResizeFilterHack)

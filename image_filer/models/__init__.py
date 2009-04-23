@@ -7,8 +7,9 @@ from django.contrib.contenttypes import generic
 from django.core.files.storage import FileSystemStorage
 from django.utils.translation import ugettext_lazy as _
 from datetime import datetime, date
-from utils import EXIF
-from fields import PickledObjectField
+from image_filer.utils import EXIF
+from image_filer import filters
+from managers import FolderManager
 from django.db.models.signals import post_init
 from django.utils.functional import curry
 
@@ -29,7 +30,6 @@ class UUIDFileSystemStorage(FileSystemStorage):
         return r
 CATALOGUE_BASE_URL = "".join([settings.MEDIA_URL, 'catalogue/'])
 CATALOGUE_BASE_PATH = os.path.abspath(os.path.join(settings.MEDIA_ROOT, 'catalogue/'))
-print settings.MEDIA_URL
 uuid_file_system_storage = UUIDFileSystemStorage( 
                                 location=CATALOGUE_BASE_PATH,
                                 base_url=CATALOGUE_BASE_URL
@@ -49,7 +49,7 @@ class AbstractFile(models.Model):
         file_type: 
     """
     file_type = 'unknown'
-    original_filename = models.CharField(editable=False, max_length=255, blank=True, null=True)
+    original_filename = models.CharField(max_length=255, blank=True, null=True)
     name = models.CharField(max_length=255, null=True, blank=True)
     
     owner = models.ForeignKey(auth_models.User, related_name='owned_files', null=True, blank=True)
@@ -66,7 +66,6 @@ class AbstractFile(models.Model):
     
     class Meta:
         abstract=True
-
 
 class FolderRoot(object):
     name = 'Root'
@@ -96,6 +95,8 @@ class Folder(models.Model):
     
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
+    
+    objects = FolderManager()
     
     @property
     def files(self):
@@ -185,6 +186,9 @@ class Image(AbstractFile):
     notes = models.TextField(null=True, blank=True)
     
     has_all_mandatory_data = models.BooleanField(default=False, editable=False)
+    
+    def clone(self):
+        return Image(parent=self)
     
     def render(self):
         if not self.parent:
@@ -620,7 +624,7 @@ class ImagePermission(models.Model):
         
 
 
-import filters
+
 FILTER_CHOICES = []
 for filter in filters.filters:
     FILTER_CHOICES.append( (filter.identifier, filter.name) )
@@ -671,7 +675,7 @@ class ImageManipulationStep(models.Model):
     filter_identifier = models.CharField(max_length=255, choices=FILTER_CHOICES)
     name = models.CharField(max_length=255, null=True, blank=True)
     description = models.TextField(null=True, blank=True)
-    data = PickledObjectField(default={})
+    data = models.TextField(null=True, blank=True)#PickledObjectField(default={})
     order = models.IntegerField(default=0)
     
     def render(self, im):
@@ -706,7 +710,10 @@ class ImageManipulationTemplate(models.Model):
         super(ImageManipulationTemplate, self).save(*args, **kwargs)
         ImageManipulationTemplateCache().reset()
         self.clear_cache()
-
+        
+    def save(self, *args, **kwargs):
+        
+        return super(ImageManipulationTemplate,self).save(*args,**kwargs)
     def delete(self):
         assert self._get_pk_val() is not None, "%s object can't be deleted because its %s attribute is set to None." % (self._meta.object_name, self._meta.pk.attname)
         self.clear_cache()
@@ -751,8 +758,6 @@ class Bucket(models.Model):
             item.delete()
     empty.alters_data = True
     
-    def create_zip(self):
-        return 'zipfile'
     def clone(self, to_folder=None):
         pass
     def set_image_manipulation_profile(self):

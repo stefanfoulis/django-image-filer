@@ -2,9 +2,25 @@ Buckets: {{ user }}
 {% for bucket in user.buckets.all %}
 <h1>Bucket {{ bucket.id }}</h1>
 <ul>
-	{% for item in bucket.files.all %}<li>{% if item.get_bucket_thumbnail_url %}<img src="{{ item.get_bucket_thumbnail_url }}" alt="{{ item.default_alt_text }}" />{% endif %}{{ item.label }}<a href="{% url image_filer-move_files_to_folder %}?file_ids={{ item.id }}&folder_id={{ folder.id }}">move to folder</a></li>
+	{% for item in bucket.files.all %}<li>{% if item.get_bucket_thumbnail_url %}<img src="{{ item.get_bucket_thumbnail_url }}" alt="{{ item.default_alt_text }}" />{% endif %}{{ item.label }}</li>
 	{% endfor %}
 </ul>
-<a href="{% url image_filer-move_bucket_to_folder bucket.id%}?folder_id={{ folder.id }}">move files to current folder</a>
+<form action="{% url image_filer-empty_bucket_in_folder %}" method="post">
+	<input type="hidden" name="folder_id" value="{{ folder.id }}" />
+	<input type="hidden" name="bucket_id" value="{{ bucket.id }}" />
+	<input type="hidden" name="redirect_to" value="{{ current_url }}" />
+	<input type="submit" value="empty to folder" />
+</form>
+<form action="{% url image_filer-clone_files_from_bucket_to_folder %}" method="post">
+	<input type="hidden" name="folder_id" value="{{ folder.id }}" />
+	<input type="hidden" name="bucket_id" value="{{ bucket.id }}" />
+	<input type="hidden" name="redirect_to" value="{{ current_url }}" />
+	<input type="submit" value="clone to folder" />
+</form>
+<form action="{% url image_filer-empty_bucket %}" method="post">
+	<input type="hidden" name="bucket_id" value="{{ bucket.id }}" />
+	<input type="hidden" name="redirect_to" value="{{ current_url }}" />
+	<input type="submit" value="empty" />
+</form>
 {% endfor %}
 	
