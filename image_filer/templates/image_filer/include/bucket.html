@@ -1,0 +1,10 @@
+Buckets: {{ user }}
+{% for bucket in user.buckets.all %}
+<h1>Bucket {{ bucket.id }}</h1>
+<ul>
+	{% for item in bucket.files.all %}<li>{% if item.get_bucket_thumbnail_url %}<img src="{{ item.get_bucket_thumbnail_url }}" alt="{{ item.default_alt_text }}" />{% endif %}{{ item.label }}<a href="{% url image_filer-move_files_to_folder %}?file_ids={{ item.id }}&folder_id={{ folder.id }}">move to folder</a></li>
+	{% endfor %}
+</ul>
+<a href="{% url image_filer-move_bucket_to_folder bucket.id%}?folder_id={{ folder.id }}">move files to current folder</a>
+{% endfor %}
+	

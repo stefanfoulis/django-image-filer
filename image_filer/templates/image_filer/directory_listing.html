@@ -1,0 +1,93 @@
+{% extends "image_filer/base.html" %}
+{% load i18n %}
+{% load adminmedia %}
+
+{% block extrahead %}{{ block.super }}
+{% endblock %}
+
+{% block coltype %}colMS{% endblock %}
+
+
+{% block extrastyle %}{{ block.super }}
+{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+	<a href="/admin/">Home</a> › <a href="/admin/image_filer/">Image Portfolio</a> › 
+	<a href="{% url image_filer-directory_listing-root %}">Root</a>
+	{% for ancestor_folder in folder.get_ancestors %}
+	 › <a href="{% url image_filer-directory_listing ancestor_folder.id %}">{{ ancestor_folder.name }}</a>
+	 {% endfor %} › 
+	 {{ folder.name }}
+</div>
+{% endblock %}
+
+{% block sidebar %}
+<div id="content-related">
+	{% include "image_filer/include/bucket.html" %}
+</div>
+{% endblock %}
+
+
+{% block content %}
+<div id="content-main">
+	has_edit_permission: <strong>{{permissions.has_edit_permission }}</strong> | has_read_permission: <strong>{{permissions.has_read_permission}}</strong> | has_add_children_permission: <strong>{{permissions.has_add_children_permission}}</strong>
+    <br/>perms: {{ permstest }}
+	<ul class="object-tools">
+        <li><a id="newFolderButton" href="#">{% trans "New Folder" %}</a></li>
+        <li><a id="uploadButton" href="#" class="focus">{% trans "Upload" %}</a></li>
+    </ul>
+    <div class="module filtered" id="changelist">
+    	{% comment %}
+		{% endcomment %}
+        <div id="toolbartable">
+        <table cellspacing="0">
+            {% include "image_filer/include/tableheader.html" %}
+            <tbody>
+            	{% if folder.parent %}{% if folder.parent.id %}
+					<tr>
+						<td></td>
+						<td></td>
+						<td><a href="{% url image_filer-directory_listing folder.parent.id %}">..</a> </td>
+						<td></td>
+						<td></td>
+						<td></td>
+					</tr>
+				{% endif %}{% endif %}
+            {% for file in folder_children %}
+                {% include "image_filer/include/folderlisting.html" %}
+            {% endfor %}
+			{% for file in folder_files %}
+                {% include "image_filer/include/folderlisting.html" %}
+            {% endfor %}
+	{% comment %}
+			<tr>
+				<td></td>
+				<td>All Folders</td>
+				<td></td>
+				<td></td>
+				<td></td>
+			</tr>
+			{% for file in folder.children.all %}
+                {% include "image_filer/include/folderlisting.html" %}
+            {% endfor %}
+						<tr>
+				<td></td>
+				<td>All Files</td>
+				<td></td>
+				<td></td>
+				<td></td>
+			</tr>
+			{% for file in folder.files %}
+                {% include "image_filer/include/folderlisting.html" %}
+            {% endfor %}
+	{% endcomment %}
+            </tbody>
+        </table>
+        </div>
+    </div>
+</div>
+{% include "image_filer/include/new_folder_dialog.html" %}
+{% include "image_filer/include/upload_dialog.html" %}
+
+{% endblock %}
