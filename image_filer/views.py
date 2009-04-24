@@ -27,8 +27,13 @@ def _userperms(item, request):
     return r
 class ImagesWithMissingDataRoot(FolderRoot):
     def _children(self):
-        return Image.objects.filter(has_all_mandatory_data=False)
+        return []
     children = property(_children)
+    def _files(self):
+        return Image.objects.filter(has_all_mandatory_data=False)
+    files = property(_files)
+    
+    
 def directory_listing(request, folder_id=None, images_with_missing_data=False):
     new_folder_form = NewFolderForm()
     if images_with_missing_data:
@@ -37,7 +42,6 @@ def directory_listing(request, folder_id=None, images_with_missing_data=False):
         folder = FolderRoot()
     else:
         folder = Folder.objects.get(id=folder_id)
-    
     
     # Debug    
     upload_file_form = UploadFileForm()
@@ -48,6 +52,8 @@ def directory_listing(request, folder_id=None, images_with_missing_data=False):
         for f in folder.children:
             f.perms = _userperms(f, request)
             folder_children.append(f)
+        for f in folder.files:
+            folder_files.append(f)
     else:
         for f in folder.children.all():
             f.perms = _userperms(f, request)
@@ -230,10 +236,13 @@ class ImageExportForm(forms.Form):
     FORMAT_CHOICES = (
         ('jpg', 'jpg'),
         ('png', 'png'),
+        ('gif', 'gif'),
+        #('tif', 'tif'),
     )
     format = forms.ChoiceField(choices=FORMAT_CHOICES)
     
     crop = forms.BooleanField(required=False)
+    upscale = forms.BooleanField(required=False)
     
     width = forms.IntegerField()
     height = forms.IntegerField()
@@ -252,10 +261,21 @@ def export_image(request, image_id):
             if format=='png':
                 mimetype='image/jpg'
                 pil_format = 'PNG'
+            #elif format=='tif':
+            #    mimetype='image/tiff'
+            #    pil_format = 'TIFF'
+            elif format=='gif':
+                mimetype='image/gif'
+                pil_format = 'GIF'
             else:
                 mimetype='image/jpg'
                 pil_format = 'JPEG'
-            im = resize_filter.render(im,size_x=int(form.cleaned_data['width']), size_y=int(form.cleaned_data['height']), crop=form.cleaned_data['crop'])
+            im = resize_filter.render(im,
+                    size_x=int(form.cleaned_data['width']), 
+                    size_y=int(form.cleaned_data['height']), 
+                    crop=form.cleaned_data['crop'],
+                    upscale=form.cleaned_data['upscale']
+            )
             response = HttpResponse(mimetype='%s' % mimetype)
             response['Content-Disposition'] = 'attachment; filename=exported_image.%s' % format
             im.save(response, pil_format)

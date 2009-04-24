@@ -31,8 +31,6 @@
 
 {% block content %}
 <div id="content-main">
-	has_edit_permission: <strong>{{permissions.has_edit_permission }}</strong> | has_read_permission: <strong>{{permissions.has_read_permission}}</strong> | has_add_children_permission: <strong>{{permissions.has_add_children_permission}}</strong>
-    <br/>perms: {{ permstest }}
 	<ul class="object-tools">
         <li><a id="newFolderButton" href="#">{% trans "New Folder" %}</a></li>
         <li><a id="uploadButton" href="#" class="focus">{% trans "Upload" %}</a></li>

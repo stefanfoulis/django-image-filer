@@ -73,6 +73,9 @@ class FolderRoot(object):
     def _children(self):
         return Folder.objects.filter(parent__isnull=True)
     children = property(_children)
+    def _files(self):
+        return []
+    files = property(_files)
 
 class Folder(models.Model):
     """
