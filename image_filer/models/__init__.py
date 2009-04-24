@@ -189,9 +189,11 @@ class Image(AbstractFile):
     
     def clone(self):
         return Image(parent=self)
-    
+    def is_original(self):
+        return self.parent==None
+    is_original = property(is_original)
     def render(self):
-        if not self.parent:
+        if self.is_original:
             # if this is a root image rendering is forbidden... the original
             # may not be changed
             return False
@@ -667,7 +669,8 @@ class ImageManipulationProfile(models.Model):
             im = step.render(im)
         return im
     def __unicode__(self):
-        return self.name
+        steps = ', '.join( [step.name or '' for step in self.steps.all()] )
+        return u"%s (%s)" % (self.name, steps)
         
 
 class ImageManipulationStep(models.Model):

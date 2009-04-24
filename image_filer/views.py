@@ -25,19 +25,18 @@ def _userperms(item, request):
             if x:
                 r.append( p )
     return r
-
-def directory_listing(request, folder_id=None):
-    #print request.session.session_key, request.user, type(request.session)
-    #print "%s.SessionStore" % settings.SESSION_ENGINE
+class ImagesWithMissingDataRoot(FolderRoot):
+    def _children(self):
+        return Image.objects.filter(has_all_mandatory_data=False)
+    children = property(_children)
+def directory_listing(request, folder_id=None, images_with_missing_data=False):
     new_folder_form = NewFolderForm()
-    #print request.user
-    
-    if not folder_id == None:
-        folder = Folder.objects.get(id=folder_id)
-        #print "readX: %s" % getattr(folder, 'has_read_permission')(request)
-        #print "readX2: %s" % folder.has_read_permission(request)
-    else:
+    if images_with_missing_data:
+        folder = ImagesWithMissingDataRoot()
+    elif folder_id == None:
         folder = FolderRoot()
+    else:
+        folder = Folder.objects.get(id=folder_id)
     
     
     # Debug    
@@ -45,7 +44,7 @@ def directory_listing(request, folder_id=None):
     
     folder_children = []
     folder_files = []
-    if type(folder) == FolderRoot:
+    if issubclass(type(folder), FolderRoot):
         for f in folder.children:
             f.perms = _userperms(f, request)
             folder_children.append(f)
@@ -227,3 +226,43 @@ def clone_files_from_bucket_to_folder(request):
         tools.clone_files_from_bucket_to_folder(bucket, folder)
     return HttpResponseRedirect( request.POST.get('redirect_to', '') )
 
+class ImageExportForm(forms.Form):
+    FORMAT_CHOICES = (
+        ('jpg', 'jpg'),
+        ('png', 'png'),
+    )
+    format = forms.ChoiceField(choices=FORMAT_CHOICES)
+    
+    crop = forms.BooleanField(required=False)
+    
+    width = forms.IntegerField()
+    height = forms.IntegerField()
+    
+    
+import filters
+def export_image(request, image_id):
+    image = Image.objects.get(id=image_id)
+    
+    if request.method=='POST':
+        form = ImageExportForm(request.POST)
+        if form.is_valid():
+            resize_filter = filters.ResizeFilter()
+            im = filters.Image.open(image.file.path)
+            format = form.cleaned_data['format']
+            if format=='png':
+                mimetype='image/jpg'
+                pil_format = 'PNG'
+            else:
+                mimetype='image/jpg'
+                pil_format = 'JPEG'
+            im = resize_filter.render(im,size_x=int(form.cleaned_data['width']), size_y=int(form.cleaned_data['height']), crop=form.cleaned_data['crop'])
+            response = HttpResponse(mimetype='%s' % mimetype)
+            response['Content-Disposition'] = 'attachment; filename=exported_image.%s' % format
+            im.save(response, pil_format)
+            return response
+    else:
+        form = ImageExportForm(initial={'crop': True, 'width': image.file.width, 'height':image.file.height})
+    return render_to_response('image_filer/image_export_form.html', {
+            'form': form,
+            'image': image
+    }, context_instance=RequestContext(request)) 

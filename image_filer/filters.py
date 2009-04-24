@@ -56,6 +56,7 @@ class ResizeFilter(BaseFilter):
                     ratio = float(new_width)/cur_width
             new_dimensions = (int(round(cur_width*ratio)),
                               int(round(cur_height*ratio)))
+            print new_dimensions
             if new_dimensions[0] > cur_width or \
                new_dimensions[1] > cur_height:
                 if not upscale:
@@ -69,6 +70,13 @@ class TinyResizeFilterHack(ResizeFilter):
     def render(self, im, size_x=24, size_y=24, crop=True, crop_from='top', upscale=True):
         return super(TinyResizeFilterHack, self).render(im, size_x=size_x, size_y=size_y)
 filters.append(TinyResizeFilterHack)
+
+class MiddleResizeFilterHack(ResizeFilter):
+    name = "Middle Resize Filter Hack"
+    identifier = "resize_simple_middle_hack"
+    def render(self, im, size_x=196, size_y=196, crop=True, crop_from='top', upscale=False):
+        return super(MiddleResizeFilterHack, self).render(im, size_x=size_x, size_y=size_y)
+filters.append(MiddleResizeFilterHack)
 
 class ReflectionFilter(BaseFilter):
     name = "Sexy Web 2.0 reflection filter"
@@ -84,6 +92,7 @@ class ReflectionFilter(BaseFilter):
         and Based on the original concept by Bernd Schlapsi
     
         """
+        print "reflection filter"
         # convert bgcolor string to rgb value
         background_color = ImageColor.getrgb(bgcolor)
     

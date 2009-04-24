@@ -8,7 +8,7 @@
     <!-- Filename/Dimensions -->
     <td><b><a href="/admin/image_filer/image/{{ file.id }}/">{{ file.label }}</a></b><br /><span class="tiny">{{ file.file.width }} x {{ file.file.height }} px</span></td>
 	<td>{{ file.owner }}</td>
-	<td>{{ file.perms }}</td>
+	<td>{% if file.is_original %}original{% else %}cloned{% endif %}</td>
 	<td>{{ request }}
 		<form action="{% url image_filer-put_file_in_bucket %}" method="post">
 			<input type="hidden" name="file_id" value="{{ file.id }}" />

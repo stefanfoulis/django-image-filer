@@ -22,6 +22,10 @@ class ImageAdmin(admin.ModelAdmin):
             #'classes': ('collapse',),
             'fields': ('can_use_for_web', 'can_use_for_print','can_use_for_teaching','can_use_for_research','can_use_for_private_use')
         }),
+        ('Manipulation (only works with cloned images)', {
+            #'classes': ('collapse',),
+            'fields': ('manipulation_profile', )
+        }),
     )
 admin.site.register(Image, ImageAdmin)
 
@@ -32,6 +36,11 @@ admin.site.register(Folder, FolderAdmin)
 
 class ImageManipulationStepInline(admin.TabularInline):
     model = ImageManipulationStep
+    fieldsets = (
+        (None, {
+            'fields': ('filter_identifier', 'data', 'order')
+        }),
+    )
 class ImageManipulationProfileAdmin(admin.ModelAdmin):
     inlines = [ ImageManipulationStepInline, ]
 admin.site.register(ImageManipulationProfile, ImageManipulationProfileAdmin)
