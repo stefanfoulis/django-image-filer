@@ -1,0 +1,7 @@
+Requirements:
+- PIL
+- mptt
+
+currently: 
+- yui library in you project in /media/frameworks/yui-2.7.0b/
+- and the yui uploader.swf in /media/frameworks/uploader.swf
