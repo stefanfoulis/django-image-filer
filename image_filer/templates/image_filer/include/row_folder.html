@@ -1,18 +1,14 @@
 {% load adminmedia %}
 {% load i18n %}
 
-<tr>
+<tr class="{% cycle rowcolors %}">
     <!-- FileIcon -->
-    <td class="fb_icon"><img src="/media/filebrowser/img/filebrowser_type_{{ file.file_type|lower }}.gif" /></td>
-	<td>{% if file.get_admin_thumbnail_url %}<img src="{{ file.get_admin_thumbnail_url }}" alt="{{ file.default_alt_text }}" />{% endif %}</td>
+    <td><img src="/media/img/icons/plainfolder_32x32.png" alt="Folder Icon" /></td>
     <!-- Filename/Dimensions -->
     {% ifequal file.file_type 'Folder' %}
     <td><b><a href="{% url image_filer-directory_listing file.id %}">{{ file.name }}</a></b></td>
-    {% else %}
-    <td><b><a href="/admin/image_filer/image/{{ file.id }}/">{{ file.name }}</a></b><br /><span class="tiny">{{ file.file.width }} x {{ file.file.height }} px</span></td>
     {% endifequal %}
 	<td>{{ file.owner }}</td>
-	<td>{{ file.perms }}</td>
 	<td></td>
 </tr>
  

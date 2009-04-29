@@ -1,7 +1,7 @@
 {% load adminmedia %}
 {% load i18n %}
 
-<tr>
+<tr class="{% cycle rowcolors %}">
     <!-- FileIcon -->
     <td>{% if file.has_all_mandatory_data %}<img alt="0" src="/media/admin/img/admin/icon-yes.gif"/>{% else %}<img alt="1" src="/media/admin/img/admin/icon-no.gif"/>{% endif %}</td>
 	<td>{% if file.get_admin_thumbnail_url %}<img src="{{ file.get_admin_thumbnail_url }}" alt="{{ file.default_alt_text }}" />{% endif %}</td>
@@ -10,10 +10,10 @@
 	<td>{{ file.owner }}</td>
 	<td>{% if file.is_original %}original{% else %}cloned{% endif %}</td>
 	<td>{{ request }}
-		<form action="{% url image_filer-put_file_in_bucket %}" method="post">
+		<form action="{% url image_filer-move_file_to_clipboard %}" method="post">
 			<input type="hidden" name="file_id" value="{{ file.id }}" />
 			<input type="hidden" name="redirect_to" value="{{ current_url }}" />
-			<input type="submit" value="put in bucket" />
+			<input type="submit" value="move to clipboard" />
 		</form>
 	</td>
 </tr>

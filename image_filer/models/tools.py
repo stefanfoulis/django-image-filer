@@ -1,29 +1,33 @@
-from image_filer.models import Bucket
+from image_filer.models import Clipboard
 
+def discard_clipboard(clipboard):
+    clipboard.files.clear()
 
-def empty_bucket(bucket):
-    bucket.files.clear()
-
-def get_user_bucket(user):
+def get_user_clipboard(user):
     if user.is_authenticated():
-        bucket, was_bucket_created = Bucket.objects.get_or_create(user=user)
-        return bucket
+        clipboard, was_clipboard_created = Clipboard.objects.get_or_create(user=user)
+        return clipboard
 
-def put_files_in_bucket(files, bucket):
+def move_file_to_clipboard(files, clipboard):
     for file in files:
-        bucket.append_file(file)
+        clipboard.append_file(file)
+        print file.folder
+        file.folder = None
+        file.save()
     return True
-def clone_files_from_bucket_to_folder(bucket, folder):
-    for file in bucket.files.all():
+
+def clone_files_from_clipboard_to_folder(clipboard, folder):
+    for file in clipboard.files.all():
         cloned_file = file.clone()
         cloned_file.folder = folder
         cloned_file.save()
 
-def move_files_from_bucket_to_folder(bucket, folder):
-    return move_files_to_folder(bucket.files.all(), folder)
+def move_files_from_clipboard_to_folder(clipboard, folder):
+    return move_files_to_folder(clipboard.files.all(), folder)
 
 def move_files_to_folder(files, folder):
     for file in files:
+        #print "moving %s (%s) to %s" % (file, type(file), folder)
         file.folder = folder
         file.save()
     return True

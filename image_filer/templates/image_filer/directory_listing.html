@@ -3,6 +3,17 @@
 {% load adminmedia %}
 
 {% block extrahead %}{{ block.super }}
+<script type="text/javascript" src="js/jquery.js"></script>
+<script type="text/javascript" src="js/jquery.lightbox-0.5.js"></script>
+<link rel="stylesheet" type="text/css" href="css/jquery.lightbox-0.5.css" media="screen" />
+
+<script type="text/javascript">
+$(document).ready(function(){
+	alert('hello world');
+});
+</script>
+
+
 {% endblock %}
 
 {% block coltype %}colMS{% endblock %}
@@ -24,68 +35,71 @@
 
 {% block sidebar %}
 <div id="content-related">
-	{% include "image_filer/include/bucket.html" %}
+	{% include "image_filer/include/clipboard.html" %}
 </div>
 {% endblock %}
 
 
 {% block content %}
+<h1>Directories</h1>
 <div id="content-main">
 	<ul class="object-tools">
-        <li><a id="newFolderButton" href="#">{% trans "New Folder" %}</a></li>
-        <li><a id="uploadButton" href="#" class="focus">{% trans "Upload" %}</a></li>
+        <li><a id="newFolderButton" href="{% url image_filer-upload %}" class="addlink">{% trans "New Folder" %}</a></li>
+        <li><a id="uploadButton" href="{% url image_filer-upload %}" class="addlink">{% trans "Upload" %}</a></li>
     </ul>
-    <div class="module filtered" id="changelist">
-    	{% comment %}
-		{% endcomment %}
+    <div class="module" id="changelist">
         <div id="toolbartable">
         <table cellspacing="0">
-            {% include "image_filer/include/tableheader.html" %}
+            <thead>
+			    <tr class="{% cycle 'row1' 'row2' as rowcolors %}">
+				    <!-- THUMB -->
+				    <th>&nbsp;</th>
+				    <!-- FILENAME / FOLDERNAME / DIMENSIONS / OWNER -->
+					<th><a href="?{{ query.query_nosort }}&amp;ot=asc&amp;o=11">{% trans 'Name' %}</a></th>
+					<th></th>
+					<th></th>
+			    </tr>
+			</thead>
             <tbody>
-            	{% if folder.parent %}{% if folder.parent.id %}
-					<tr>
-						<td></td>
-						<td></td>
-						<td><a href="{% url image_filer-directory_listing folder.parent.id %}">..</a> </td>
-						<td></td>
-						<td></td>
-						<td></td>
-					</tr>
-				{% endif %}{% endif %}
-            {% for file in folder_children %}
-                {% include "image_filer/include/row_folder.html" %}
+            {% for folder in folder_children %}
+                <tr class="{% cycle rowcolors %}">
+				    <!-- FileIcon -->
+				    <td><img src="/media/img/icons/plainfolder_128x128.png" alt="Folder Icon" /></td>
+				    <!-- Filename/Dimensions -->
+				    <td>
+				    	<div><b><a href="{% url image_filer-directory_listing folder.id %}">{{ folder.name }}</a></b></div>
+						<div>{{ folder.owner }}</div>
+					</td>
+					<td></td>
+					<td></td>
+				</tr>
             {% endfor %}
 			{% for file in folder_files %}
-                {% include "image_filer/include/row_image.html" %}
+                <tr class="{% cycle rowcolors %}">
+				    <!-- FileIcon -->
+					<td>{% if file.get_admin_thumbnail_url %}<img src="{{ file.get_admin_thumbnail_url }}" alt="{{ file.default_alt_text }}" />{% endif %}</td>
+				    <!-- Filename/Dimensions -->
+				    <td>
+				    	<div><b><a href="/admin/image_filer/image/{{ file.id }}/">{{ file.label }}</a></b></div>
+						<div><span class="tiny">{{ file.file.width }} x {{ file.file.height }} px</span></div>
+						<div>owner: {{ file.owner }}</div>
+						{% if not file.is_original %}<div>clone</div>{% endif %}
+						{% if file.has_all_mandatory_data %}<div><img alt="0" src="/media/admin/img/admin/icon-yes.gif" /> has all mandatory metadata</div>{% else %}<div><img alt="1" src="/media/admin/img/admin/icon-no.gif"/> missing metadata!</div>{% endif %}
+					</td>
+					<td></td>
+					<td style="text-align: right;">
+						<form action="{% url image_filer-move_file_to_clipboard %}" method="post">
+							<input type="hidden" name="file_id" value="{{ file.id }}" />
+							<input type="hidden" name="redirect_to" value="{{ current_url }}" />
+							<input type="submit" value="&rarr;" />
+						</form>
+					</td>
+				</tr>
             {% endfor %}
-	{% comment %}
-			<tr>
-				<td></td>
-				<td>All Folders</td>
-				<td></td>
-				<td></td>
-				<td></td>
-			</tr>
-			{% for file in folder.children.all %}
-                {% include "image_filer/include/folderlisting.html" %}
-            {% endfor %}
-						<tr>
-				<td></td>
-				<td>All Files</td>
-				<td></td>
-				<td></td>
-				<td></td>
-			</tr>
-			{% for file in folder.files %}
-                {% include "image_filer/include/folderlisting.html" %}
-            {% endfor %}
-	{% endcomment %}
             </tbody>
         </table>
         </div>
     </div>
 </div>
-{% include "image_filer/include/new_folder_dialog.html" %}
-{% include "image_filer/include/upload_dialog.html" %}
 
 {% endblock %}

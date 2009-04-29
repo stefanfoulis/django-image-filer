@@ -1,4 +1,5 @@
 from inspect import isclass
+from fnmatch import filter
 try:
     import Image
     import ImageColor
@@ -15,10 +16,44 @@ except ImportError:
     except ImportError:
         raise ImportError("The Python Imaging Library was not found.")
 
-filters = []
+#filters = [] #hack for compatibility
+filters_by_identifier = {}
+
+class FilterRegistry(object):
+    def __init__(self):
+        self.builtin_filters = {}
+        self.application_filters = {}
+        self.project_filters = {}
+        self.db_filters = {}
+        self.registry_priority = [self.db_filters, self.project_filters,
+                                  self.application_filters, self.builtin_filters]
+    
+    def _register(self, filter, library):
+        library[filter.identifier] = filter
+        filters_by_identifier[filter.identifier] = filter #hack for compatibility
+        
+    def register_builtin_filter(self, filter):
+        self._register(filter, self.builtin_filters)
+    def register_application_filter(self, filter):
+        self._register(filter, self.application_filters)
+    def register_project_filter(self, filter):
+        self._register(filter, self.project_filters)
+    def register_db_filter(self, filter):
+        self._register(filter, self.db_filters)
+    def register(self, filter):
+        self.register_project_filter(filter)
+    
+    def get(self, identifier):
+        for reg in self.registry_priority:
+            if reg.has_key(identifier):
+                return reg[identifier]
+        return None
+        
+library = FilterRegistry()
+
 
 class BaseFilter(object):
-    pass
+    identifier = "base_filter"
 
 class ResizeFilter(BaseFilter):
     name = "Resize to specified dimensions"
@@ -63,20 +98,20 @@ class ResizeFilter(BaseFilter):
                     return im
             im = im.resize(new_dimensions, Image.ANTIALIAS)
         return im
-filters.append(ResizeFilter)
+library.register_builtin_filter(ResizeFilter)
 class TinyResizeFilterHack(ResizeFilter):
     name = "Tiny Resize Filter Hack"
     identifier = "resize_simple_tiny_hack"
     def render(self, im, size_x=24, size_y=24, crop=True, crop_from='top', upscale=True):
         return super(TinyResizeFilterHack, self).render(im, size_x=size_x, size_y=size_y)
-filters.append(TinyResizeFilterHack)
+library.register_builtin_filter(TinyResizeFilterHack)
 
 class MiddleResizeFilterHack(ResizeFilter):
     name = "Middle Resize Filter Hack"
     identifier = "resize_simple_middle_hack"
     def render(self, im, size_x=196, size_y=196, crop=True, crop_from='top', upscale=False):
         return super(MiddleResizeFilterHack, self).render(im, size_x=size_x, size_y=size_y)
-filters.append(MiddleResizeFilterHack)
+library.register_builtin_filter(MiddleResizeFilterHack)
 
 class ReflectionFilter(BaseFilter):
     name = "Sexy Web 2.0 reflection filter"
@@ -131,7 +166,7 @@ class ReflectionFilter(BaseFilter):
     
         # return the image complete with reflection effect
         return composite
-filters.append(ReflectionFilter)
+library.register_builtin_filter(ReflectionFilter)
 
 """
 Create image filter objects for all the built in PIL filters
@@ -143,14 +178,8 @@ for n in dir(ImageFilter):
         class NewSubclass(BaseFilter):
             _pil_filter = klass
             name = klass.name
-            identifier = klass.name
+            identifier = klass.name.replace(' ', '').lower()
             def render(self, im):
                 return im.filter(self._pil_filter)
         NewSubclass.__name__ = "%s%s" % (klass.name, "Filter")
-        filters.append(NewSubclass)
-
-
-
-filters_by_identifier = {}
-for filter in filters:
-    filters_by_identifier[filter.identifier] = filter
+        library.register_builtin_filter(NewSubclass)

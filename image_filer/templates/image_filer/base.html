@@ -3,45 +3,13 @@
 {% load adminmedia %}
 
 {% block extrahead %}{{ block.super }}
-<!-- Individual YUI CSS files -->
-<link rel="stylesheet" type="text/css" href="/media/frameworks/yui-2.7.0b/assets/skins/sam/skin.css">
-<!-- Individual YUI JS files -->
-<script type="text/javascript" src="/media/frameworks/yui-2.7.0b/utilities/utilities.js"></script>
-<script type="text/javascript" src="/media/frameworks/yui-2.7.0b/container/container-min.js"></script>
-<script type="text/javascript" src="/media/frameworks/yui-2.7.0b/dragdrop/dragdrop-min.js"></script> 
-<script type="text/javascript" src="/media/frameworks/yui-2.7.0b/menu/menu-min.js"></script>
-<script type="text/javascript" src="/media/frameworks/yui-2.7.0b/button/button-min.js"></script>
-<script type="text/javascript" src="/media/frameworks/yui-2.7.0b/datasource/datasource-min.js"></script>
-<script type="text/javascript" src="/media/frameworks/yui-2.7.0b/calendar/calendar-min.js"></script>
-<script type="text/javascript" src="/media/frameworks/yui-2.7.0b/paginator/paginator-min.js"></script>
-<script type="text/javascript" src="/media/frameworks/yui-2.7.0b/datatable/datatable-min.js"></script>
-<script type="text/javascript" src="/media/frameworks/yui-2.7.0b/logger/logger-min.js"></script>
-<script type="text/javascript" src="/media/frameworks/yui-2.7.0b/uploader/uploader.js"></script>
-<script type="text/javascript" src="/media/frameworks/yui-2.7.0b/cookie/cookie-min.js"></script> 
 
-<script type="text/javascript">
-init = function() {
-	var myLogContainer = null;
-	var myLogConfigs = {
-		draggable: true,
-		bottom: '5px',
-		right: '5px'
-	};
-	//var myLogReader = new YAHOO.widget.LogReader();
-	YAHOO.log("base init done. loading extra stuff.");
-	YAHOO.log("about to add the event thing");
-	YAHOO.util.Event.onDOMReady(initNewFolderDialog);
-	YAHOO.log("added the event thing"); 
-}
-YAHOO.util.Event.onDOMReady(init);
-</script>
 {% endblock %}
 
 {% block coltype %}flex{% endblock %}
-{% block bodyclass %}change-list filebrowser yui-skin-sam{% endblock %}
+{% block bodyclass %}change-list filebrowser{% endblock %}
 {% block extrastyle %}{{ block.super }}
 <link rel="stylesheet" type="text/css" href="{% admin_media_prefix %}css/changelists.css" />
-{% comment %}<link rel="stylesheet" type="text/css" href="/media/filebrowser/css/filebrowser.css" />{% endcomment %}
 {% if query.pop %}
 <style type="text/css">
 #header { display: none; }

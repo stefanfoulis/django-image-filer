@@ -8,10 +8,15 @@ from django.core.files.storage import FileSystemStorage
 from django.utils.translation import ugettext_lazy as _
 from datetime import datetime, date
 from image_filer.utils import EXIF
+
 from image_filer import filters
+# hack, so admin filters get loaded
+#from image_filer.admin import filters as admin_filters
+
 from managers import FolderManager
 from django.db.models.signals import post_init
 from django.utils.functional import curry
+from django.core.urlresolvers import reverse
 
 from django.contrib.auth import models as auth_models
 
@@ -39,8 +44,8 @@ class AbstractFile(models.Model):
     """
     Represents a "File-ish" thing that is in a Folder. Any subclasses must
     at least define a foreign key to folder and a file field (or subclass thereof):
-        folder = models.ForeignKey(Folder, related_name='mytype_files')
-        file = models.FileField(upload_to='catalogue', storage=uuid_file_system_storage)
+        path: return the full absolute path to the physical file (may be omited in special cases)
+        file: return a file object
     Additional attributes may be added to enhance the experience:
         get_absolute_url(): link to the object in the front-end
         get_absolute_admin_url(): link to the object in the admin interface
@@ -49,10 +54,12 @@ class AbstractFile(models.Model):
         file_type: 
     """
     file_type = 'unknown'
+    folder = models.ForeignKey("Folder", related_name='%(class)s_files', null=True, blank=True)
+    
     original_filename = models.CharField(max_length=255, blank=True, null=True)
     name = models.CharField(max_length=255, null=True, blank=True)
     
-    owner = models.ForeignKey(auth_models.User, related_name='owned_files', null=True, blank=True)
+    owner = models.ForeignKey(auth_models.User, related_name='owned_%(class)ss', null=True, blank=True)
     
     uploaded_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
@@ -76,6 +83,7 @@ class FolderRoot(object):
     def _files(self):
         return []
     files = property(_files)
+    parent_url = None
 
 class Folder(models.Model):
     """
@@ -149,7 +157,7 @@ class Folder(models.Model):
                 else:
                     setattr(self, att_name, False)
             return getattr(self, att_name)
-        
+    
     def __unicode__(self):
         return u"<%s: '%s'>" % (self.__class__.__name__, self.name)
     class Meta:
@@ -166,7 +174,6 @@ class Image(AbstractFile):
     manipulation_profile = models.ForeignKey('ImageManipulationProfile', related_name="images", null=True, blank=True)
     
     parent = models.ForeignKey('self', null=True, blank=True, related_name='children')
-    folder = models.ForeignKey(Folder, related_name='image_files', null=True, blank=True)
     
     contact = models.ForeignKey(auth_models.User, related_name='contact_of_files', null=True, blank=True)
     
@@ -273,7 +280,7 @@ class Image(AbstractFile):
     def _get_TEMPLATE_url(self, template):
         template = ImageManipulationTemplateCache().templates.get(template)
         if not self.cached_template_file_exists(template):
-            print "generating cache image"
+            print "generating cache img for %s" % template
             self.create_template_file_cache(template)
         return '/'.join( [self.cache_url, self._get_filename_for_template(template)] )
     
@@ -307,6 +314,7 @@ class Image(AbstractFile):
         creates the image for this template in the cache 
         """
         if self.cached_template_file_exists(template):
+            print "%s is already cached for %s" % (template, self)
             return
         if not os.path.isdir(self.cache_path):
             os.makedirs(self.cache_path)
@@ -318,6 +326,7 @@ class Image(AbstractFile):
         im_format = im.format
         #print im_format
         # Apply the filters
+        print template
         im = template.render(im)
         im_filename = getattr(self, "get_%s_filename" % template.identifier)()
         try:
@@ -631,7 +640,7 @@ class ImagePermission(models.Model):
 
 
 FILTER_CHOICES = []
-for filter in filters.filters:
+for filter in filters.filters_by_identifier.values():
     FILTER_CHOICES.append( (filter.identifier, filter.name) )
 #print filters.filters
 #print FILTER_CHOICES
@@ -716,9 +725,6 @@ class ImageManipulationTemplate(models.Model):
         super(ImageManipulationTemplate, self).save(*args, **kwargs)
         ImageManipulationTemplateCache().reset()
         self.clear_cache()
-        
-    def save(self, *args, **kwargs):
-        
         return super(ImageManipulationTemplate,self).save(*args,**kwargs)
     def delete(self):
         assert self._get_pk_val() is not None, "%s object can't be deleted because its %s attribute is set to None." % (self._meta.object_name, self._meta.pk.attname)
@@ -726,14 +732,19 @@ class ImageManipulationTemplate(models.Model):
         super(ImageManipulationTemplate, self).delete()
     def __unicode__(self):
         return u"%s (%s)" % (self.name, self.identifier)
+
 class ImageManipulationTemplateCache(object):
-    __state = {"templates": {}}    
+    __state = {"templates": {}}
     def __init__(self):
         self.__dict__ = self.__state
         if not len(self.templates):
             templates = ImageManipulationTemplate.objects.all()
             for template in templates:
                 self.templates[template.identifier] = template
+            # HACK
+            from image_filer.filters import filters_by_identifier
+            for filter in filters_by_identifier.values():
+                self.templates[filter.identifier] = filter
 
     def reset(self):
         self.templates = {}
@@ -751,12 +762,12 @@ def add_methods(sender, instance, signal, *args, **kwargs):
 post_init.connect(add_methods)
 
 
-class Bucket(models.Model):
-    user = models.ForeignKey(auth_models.User, related_name="buckets")
-    files = models.ManyToManyField(Image, related_name="buckets", through='BucketItem')
+class Clipboard(models.Model):
+    user = models.ForeignKey(auth_models.User, related_name="clipboards")
+    files = models.ManyToManyField(Image, related_name="clipboards", through='ClipboardItem')
     
     def append_file(self, file):
-        newitem = BucketItem(file=file, bucket=self)
+        newitem = ClipboardItem(file=file, clipboard=self)
         newitem.save()
     
     def empty(self):
@@ -770,10 +781,10 @@ class Bucket(models.Model):
         pass
     
     def __unicode__(self):
-        return u"Bucket %s of %s" % (self.id, self.user)
+        return u"Clipboard %s of %s" % (self.id, self.user)
 
-class BucketItem(models.Model):
+class ClipboardItem(models.Model):
     file = models.ForeignKey(Image)
-    bucket = models.ForeignKey(Bucket)
+    clipboard = models.ForeignKey(Clipboard)
     is_checked = models.BooleanField(default=True)
     

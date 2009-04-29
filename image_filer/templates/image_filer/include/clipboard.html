@@ -1,26 +1,52 @@
-Buckets: {{ user }}
-{% for bucket in user.buckets.all %}
-<h1>Bucket {{ bucket.id }}</h1>
+{% for clipboard in user.clipboards.all %}
+<table style="width: 100%; border: 1px solid #DDDDDD;">
+	<thead>
+		<th colspan=3>Clipboard [{{ clipboard.id }}]</th>
+	</thead>
+	<tbody>{% if clipboard.files.count %}{% for item in clipboard.files.all %}
+		<tr>
+			<td><img src="{{ item.get_admin_tiny_thumbnail_url }}" alt="{{ item.default_alt_text }}" />{% if item.get_admin_tiny_thumbnail_url %}x{% endif %}</td>
+			<td>{{ item.label }}</td>
+			<td></td>
+		</tr>
+		{% endfor %}
+	{% else %}
+		<tr>
+			<td colspan=3 style="color: gray;text-align: center; height: 48px; vertical-align: middle;">the clipboard is empty</td>
+		</tr>
+	{% endif %}
+	</tbody>
+	<tfoot>
+		<tr>
+			<td colspan=3>
+				<form action="{% url image_filer-paste_clipboard_to_folder %}" method="post" style="display: inline;">
+					<input type="hidden" name="folder_id" value="{{ folder.id }}" />
+					<input type="hidden" name="clipboard_id" value="{{ clipboard.id }}" />
+					<input type="hidden" name="redirect_to" value="{{ current_url }}" />
+					<input type="submit" value="&larr;" />
+				</form>
+				<form action="{% url image_filer-discard_clipboard %}" method="post"  style="display: inline;">
+					<input type="hidden" name="clipboard_id" value="{{ clipboard.id }}" />
+					<input type="hidden" name="redirect_to" value="{{ current_url }}" />
+					<input type="submit" value="discard" />
+				</form>
+			</td>
+		</tr>
+	</tfoot>
+</table>
 <ul>
-	{% for item in bucket.files.all %}<li>{% if item.get_bucket_thumbnail_url %}<img src="{{ item.get_bucket_thumbnail_url }}" alt="{{ item.default_alt_text }}" />{% endif %}{{ item.label }}</li>
-	{% endfor %}
+	
 </ul>
-<form action="{% url image_filer-empty_bucket_in_folder %}" method="post">
+
+
+
+{% comment %}
+<form action="{% url image_filer-clone_files_from_clipboard_to_folder %}" method="post">
 	<input type="hidden" name="folder_id" value="{{ folder.id }}" />
-	<input type="hidden" name="bucket_id" value="{{ bucket.id }}" />
-	<input type="hidden" name="redirect_to" value="{{ current_url }}" />
-	<input type="submit" value="empty to folder" />
-</form>
-<form action="{% url image_filer-clone_files_from_bucket_to_folder %}" method="post">
-	<input type="hidden" name="folder_id" value="{{ folder.id }}" />
-	<input type="hidden" name="bucket_id" value="{{ bucket.id }}" />
+	<input type="hidden" name="clipboard_id" value="{{ clipboard.id }}" />
 	<input type="hidden" name="redirect_to" value="{{ current_url }}" />
 	<input type="submit" value="clone to folder" />
 </form>
-<form action="{% url image_filer-empty_bucket %}" method="post">
-	<input type="hidden" name="bucket_id" value="{{ bucket.id }}" />
-	<input type="hidden" name="redirect_to" value="{{ current_url }}" />
-	<input type="submit" value="empty" />
-</form>
+{% endcomment %}
 {% endfor %}
 	

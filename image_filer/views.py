@@ -1,11 +1,12 @@
 import os
 from django.shortcuts import render_to_response
+from django.contrib.auth.decorators import login_required
 from django.template import RequestContext
 from django.http import HttpResponseRedirect, HttpResponse, HttpResponseForbidden,HttpResponseBadRequest
 from django.contrib.sessions.models import Session
 from django.conf import settings
 
-from models import Folder, FolderRoot, Image, Bucket, BucketItem
+from models import Folder, FolderRoot, Image, Clipboard, ClipboardItem
 from models import tools
 
 from django import forms
@@ -33,7 +34,7 @@ class ImagesWithMissingDataRoot(FolderRoot):
         return Image.objects.filter(has_all_mandatory_data=False)
     files = property(_files)
     
-    
+@login_required
 def directory_listing(request, folder_id=None, images_with_missing_data=False):
     new_folder_form = NewFolderForm()
     if images_with_missing_data:
@@ -63,6 +64,7 @@ def directory_listing(request, folder_id=None, images_with_missing_data=False):
             else:
                 folder_children.append(f) 
         for f in folder.files:
+            print f
             f.perms = _userperms(f, request)
             if hasattr(f, 'has_read_permission'):
                 if f.has_read_permission(request):
@@ -91,6 +93,7 @@ def directory_listing(request, folder_id=None, images_with_missing_data=False):
             'current_url': request.path,
         }, context_instance=RequestContext(request))
 
+@login_required
 def edit_folder(request, folder_id):
     # TODO: implement edit_folder view
     folder=None
@@ -98,6 +101,7 @@ def edit_folder(request, folder_id):
             'folder':folder,
         }, context_instance=RequestContext(request))
 
+@login_required
 def edit_image(request, folder_id):
     # TODO: implement edit_image view
     folder=None
@@ -105,6 +109,7 @@ def edit_image(request, folder_id):
             'folder':folder,
         }, context_instance=RequestContext(request))
 
+@login_required
 def make_folder(request, folder_id=None):
     if folder_id:
         folder = Folder.objects.get(id=folder_id)
@@ -140,19 +145,26 @@ class UploadFileForm(forms.ModelForm):
         
 from image_filer.utils.files import generic_handle_file
 
-def upload(request, folder_id=None):
+@login_required
+def upload(request):
+    print "in UPLOAD"
+    return render_to_response('image_filer/upload.html', {}, context_instance=RequestContext(request))
+
+def ajax_upload(request, folder_id=None):
     """
     receives an upload from the flash uploader and fixes the session
     because of the missing cookie. Receives only one file at the time, 
     althow it may be a zip file, that will be unpacked.
     """
-    
+    print request.POST
     # flashcookie-hack (flash does not submit the cookie, so we send the
     # django sessionid over regular post
     engine = __import__(settings.SESSION_ENGINE, {}, {}, [''])
-    session_key = request.POST.get('cookieVar')
+    #session_key = request.POST.get('jsessionid')
+    # this sucks... session key in get!
+    session_key = request.GET.get('jsessionid')
     request.session = engine.SessionStore(session_key)
-    #print request.session.session_key, request.user
+    print request.session.session_key, request.user
     if folder_id:
         folder = Folder.objects.get(id=folder_id)
     else:
@@ -173,63 +185,68 @@ def upload(request, folder_id=None):
         return HttpResponse("must be POST")
     original_filename = request.POST.get('Filename')
     file = request.FILES.get('Filedata')
-    print request.FILES
-    print original_filename, file
-    bucket, was_bucket_created = Bucket.objects.get_or_create(user=request.user)
-    print bucket
+    #print request.FILES
+    #print original_filename, file
+    clipboard, was_bucket_created = Clipboard.objects.get_or_create(user=request.user)
     files = generic_handle_file(file, original_filename)
     for ifile, iname in files:
         iext = os.path.splitext(iname)[1].lower()
-        print "extension: ", iext
+        #print "extension: ", iext
         if iext in ['.jpg','.jpeg','.png','.gif']:
             imageform = UploadFileForm({'original_filename':iname,'owner': request.user.pk}, {'file':ifile})
             if imageform.is_valid():
                 print 'imageform is valid'
                 image = imageform.save(commit=False)
                 image.save()
-                bi = BucketItem(bucket=bucket, file=image)
+                bi = ClipboardItem(clipboard=clipboard, file=image)
                 bi.save()
                 print image
             else:
-                print imageform.errors
+                pass#print imageform.errors
     return HttpResponse("ok")
 
-def empty_bucket_in_folder(request):
+@login_required
+def paste_clipboard_to_folder(request):
     if request.method=='POST':
         folder = Folder.objects.get( id=request.POST.get('folder_id') )
-        bucket = Bucket.objects.get( id=request.POST.get('bucket_id') )
-        tools.move_files_from_bucket_to_folder(bucket, folder)
-        tools.empty_bucket(bucket)
+        print folder
+        clipboard = Clipboard.objects.get( id=request.POST.get('clipboard_id') )
+        tools.move_files_from_clipboard_to_folder(clipboard, folder)
+        tools.discard_clipboard(clipboard)
     return HttpResponseRedirect( request.POST.get('redirect_to', '') )
 
-def clone_bucket_to_folder(request):
+@login_required
+def clone_clipboard_to_folder(request):
     if request.method=='POST':
         folder = Folder.objects.get( id=request.POST.get('folder_id') )
-        bucket = Bucket.objects.get( id=request.POST.get('bucket_id') )
-        tools.move_files_from_bucket_to_folder(bucket, folder)
-        tools.empty_bucket(bucket)
+        clipboard = Clipboard.objects.get( id=request.POST.get('clipboard_id') )
+        tools.move_files_from_clipboard_to_folder(clipboard, folder)
+        tools.discard_clipboard(clipboard)
     return HttpResponseRedirect( request.POST.get('redirect_to', '') )
 
-def empty_bucket(request):
+@login_required
+def discard_clipboard(request):
     if request.method=='POST':
-        bucket = Bucket.objects.get( id=request.POST.get('bucket_id') )
-        tools.empty_bucket(bucket)
+        clipboard = Clipboard.objects.get( id=request.POST.get('clipboard_id') )
+        tools.discard_clipboard(clipboard)
     return HttpResponseRedirect( request.POST.get('redirect_to', '') )
 
-def put_file_in_bucket(request):
+@login_required
+def move_file_to_clipboard(request):
     if request.method=='POST':
         file_id = request.POST.get("file_id", None)
-        bucket = tools.get_user_bucket(request.user)
+        clipboard = tools.get_user_clipboard(request.user)
         if file_id:
             file = Image.objects.get(id=file_id)
-            tools.put_files_in_bucket([file], bucket)
+            tools.move_file_to_clipboard([file], clipboard)
     return HttpResponseRedirect( request.POST.get('redirect_to', '') )
 
-def clone_files_from_bucket_to_folder(request):
+@login_required
+def clone_files_from_clipboard_to_folder(request):
     if request.method=='POST':
-        bucket = Bucket.objects.get( id=request.POST.get('bucket_id') )
+        clipboard = Clipboard.objects.get( id=request.POST.get('clipboard_id') )
         folder = Folder.objects.get( id=request.POST.get('folder_id') )
-        tools.clone_files_from_bucket_to_folder(bucket, folder)
+        tools.clone_files_from_clipboard_to_folder(clipboard, folder)
     return HttpResponseRedirect( request.POST.get('redirect_to', '') )
 
 class ImageExportForm(forms.Form):
@@ -249,6 +266,7 @@ class ImageExportForm(forms.Form):
     
     
 import filters
+@login_required
 def export_image(request, image_id):
     image = Image.objects.get(id=image_id)
     
