@@ -2,17 +2,19 @@
 {% load i18n admin_modify adminmedia %}
 
 {% block extrahead %}{{ block.super }}
+<script type="text/javascript" src="/media/admin/js/admin/RelatedObjectLookups.js"></script>
 <script type="text/javascript" src="/media/image_filer/jquery.uploadify-v1.6.2/jquery-1.3.2.min.js"></script>
 <script type="text/javascript" src="/media/image_filer/jquery.uploadify-v1.6.2/jquery.uploadify.js"></script>
 <script type="text/javascript" src="/media/image_filer/jquery.cookie.js"></script>
 {% endblock %}
 
+
+{% block breadcrumbs %}{% endblock %}
+
 {% block content %}
 
 <input type="file" name="fileInput" id="fileInput" />
 <script type="text/javascript">
-//alert($.cookie('sessionid'));
-
 $(document).ready(function() {
 	$('#fileInput').fileUpload ({
 		'uploader'  : '/media/image_filer/jquery.uploadify-v1.6.2/uploader.swf',
@@ -21,11 +23,15 @@ $(document).ready(function() {
 		'auto'      : true,
 		'folder'    : '',
 		'multi'		: true,
-		'buttonText': 'upload files',
+		'buttonText': 'select files',
 		'simUploadLimit': 2,
-		'scriptData':{'stuff':'there','jsessionid':$.cookie('sessionid')}
+		'scriptData':{'stuff':'there','jsessionid':$.cookie('sessionid')},
+		'onComplete': function() {setTimeout(closeTheWindow(),500);}
 	});
 });
+function closeTheWindow() {
+	opener.dismissPopupAndReload(window);
+};
 </script>
-
+<a href="javascript:window.close()">Cancel</a>
 {% endblock %}

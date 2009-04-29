@@ -1,0 +1,36 @@
+{% extends "admin/change_form.html" %}
+{% load i18n admin_modify adminmedia %}
+
+{% block breadcrumbs %}<div class="breadcrumbs"><a href="/admin/">Home</a> › <a href="/admin/image_filer/">Image Portfolio</a>{% if original.folder %} › <a href="{% url image_filer-directory_listing-root %}">Root</a>{% for ancestor_folder in original.folder.get_ancestors %} › <a href="{% url image_filer-directory_listing ancestor_folder.id %}">{{ ancestor_folder.name }}</a>{% endfor %} › <a href="{% url image_filer-directory_listing original.folder.id %}">{{ original.folder.name }}</a>{% endif %} › {{ original }}</div>{% endblock %}
+
+{% block coltype %}{% if is_popup %}colM{% else %}colMS{% endif %}{% endblock %}
+{% block object-tools %}
+{% if change %}{% if not is_popup %}
+  <ul class="object-tools">
+  	<li><a href="export/">Export</a></li>
+  	<li><a href="history/" class="historylink">{% trans "History" %}</a></li>
+  {% if has_absolute_url %}<li><a href="../../../r/{{ content_type_id }}/{{ object_id }}/" class="viewsitelink">{% trans "View on site" %}</a></li>{% endif%}
+  </ul>
+{% endif %}{% endif %}
+{% endblock %}
+
+{% block sidebar %}{% if not is_popup %}
+<div id="content-related">
+    <div id="navcontainer">
+    	<a href="{{ original.file.url }}"><img src="{{ original.get_admin_sidebar_thumbbnail_url }}" alt="{{ original.label }}" /></a>
+        <ul id="navlist">
+            <li>original filename: {{ original.original_filename }}</li>
+            {% ifequal form.data.is_shareholder 1 %}
+            <li><a href="/admin/manager/shareholders/{{ form.data.id }}/">Show shareholder data for {{ form.data.id }}</a></li>
+            {% endifequal %}
+			{% if original.children.all %}
+			<li>Children:
+				<ul>{% for image_child in original.children.all %}
+					<li>{{ image_child.admin_thumbnail|safe }}{{ image_child.label }}</li>{% endfor %}
+				</ul>
+			</li>
+			{% endif %}
+        </ul>
+    </div>
+</div>
+{% endif %}{% endblock %}

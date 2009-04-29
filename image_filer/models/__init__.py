@@ -109,18 +109,37 @@ class Folder(models.Model):
     
     objects = FolderManager()
     
-    @property
-    def files(self):
+    
+    def _get_file_relationships(self):
         # TODO: make this a "multi iterator" that can iterate over multiple
         #         querysets without having to load all objects
+        rel_attr = []
         rel = []
         for attr in dir(self):
             if not attr.startswith('_') and attr.endswith('_files'):
                 # TODO: also check for fieldtype
-                rel.append(attr)
+                rel_attr.append(attr)
+                rel.append(getattr(self, attr))
+        return rel
+    
+    @property
+    def file_count(self):
+        c = 0
+        rel = self._get_file_relationships()
+        for files in rel:
+            c += files.count()
+        return c
+    @property
+    def children_count(self):
+        return self.children.count()
+    @property
+    def item_count(self):
+        return self.file_count + self.children_count
+    @property
+    def files(self):
+        rel = self._get_file_relationships()
         result = []
-        for r in rel:
-            files = getattr(self,r)
+        for files in rel:
             for file in files.all():
                 result.append(file)
         return result
@@ -162,6 +181,7 @@ class Folder(models.Model):
         return u"<%s: '%s'>" % (self.__class__.__name__, self.name)
     class Meta:
         unique_together = (('parent','name'),)
+        ordering = ('name',)
 
 class Image(AbstractFile):
     file_type = 'image'

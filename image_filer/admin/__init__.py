@@ -2,6 +2,9 @@ from django.contrib import admin
 from image_filer.models import  *
 from django.http import HttpResponseRedirect
 from django.utils.safestring import mark_safe
+from django.forms.models import modelform_factory, modelformset_factory, inlineformset_factory
+from django.contrib.admin.util import unquote, flatten_fieldsets, get_deleted_objects, model_ngettext, model_format_dict
+from django import forms
 
 from django.contrib.admin import actions
 
@@ -75,14 +78,44 @@ class ImageAdmin(admin.ModelAdmin):
 admin.site.register(Image, ImageAdmin)
 #X = ["image_files__%s" % x for x in ImageAdmin.search_fields]
 
+class AddFolderPopupForm(forms.ModelForm):
+    folder = forms.HiddenInput()
+    class Meta:
+        model=Folder
+        fields = ('name',)
+        
+
 class FolderAdmin(admin.ModelAdmin):
     list_display = ('icon_img', 'name', 'owner',)
     #list_display_links = ('icon_img', 'name', )
     list_editable =('name', )
     list_per_page = 20
-    list_filter = ('name', 'owner',)
+    list_filter = ('owner',)
     verbose_name = "DEBUG Folder Admin"
-    search_fields = ['name', 'image_files__name' ]# + X
+    search_fields = ['name', 'image_files__name' ]
+    
+    def get_form(self, request, obj=None, **kwargs):
+        """
+        Returns a Form class for use in the admin add view. This is used by
+        add_view and change_view.
+        """
+        parent_id = request.REQUEST.get('parent_id', None)
+        if parent_id:
+            print "yay! has a parent1"
+            return AddFolderPopupForm
+        else:
+            return super(FolderAdmin, self).get_form(request, obj=None, **kwargs)
+    def save_form(self, request, form, change):
+        """
+        Given a ModelForm return an unsaved instance. ``change`` is True if
+        the object is being changed, and False if it's being added.
+        """
+        r = form.save(commit=False)
+        parent_id = request.REQUEST.get('parent_id', None)
+        if parent_id:
+            parent = Folder.objects.get(id=parent_id)
+            r.parent = parent
+        return r
     
     def icon_img(self,xs):
         return mark_safe('<img src="/media/img/icons/plainfolder_32x32.png" alt="Folder Icon" />')

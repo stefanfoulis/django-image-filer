@@ -82,6 +82,7 @@ def directory_listing(request, folder_id=None, images_with_missing_data=False):
     
     #print folder_files
     #print folder_children
+    print request.GET.get('_popup',0)
     return render_to_response('image_filer/directory_listing.html', {
             'folder':folder,
             'folder_children':folder_children,
@@ -111,6 +112,8 @@ def edit_image(request, folder_id):
 
 @login_required
 def make_folder(request, folder_id=None):
+    if not folder_id:
+        folder_id = request.REQUEST.get('parent_id', None)
     if folder_id:
         folder = Folder.objects.get(id=folder_id)
     else:
@@ -131,11 +134,14 @@ def make_folder(request, folder_id=None):
             new_folder.parent = folder
             new_folder.owner = request.user
             new_folder.save()
-            return HttpResponseRedirect('')
+            print u"Saving folder %s as child of %s" % (new_folder, folder)
+            return HttpResponse('<script type="text/javascript">opener.dismissPopupAndReload(window);</script>')
     else:
+        print u"New Folder GET, parent %s" % folder
         new_folder_form = NewFolderForm()
     return render_to_response('image_filer/include/new_folder_form.html', {
             'new_folder_form': new_folder_form,
+            'is_popup': request.REQUEST.has_key('_popup'),
     }, context_instance=RequestContext(request))
 
 class UploadFileForm(forms.ModelForm):
@@ -147,8 +153,7 @@ from image_filer.utils.files import generic_handle_file
 
 @login_required
 def upload(request):
-    print "in UPLOAD"
-    return render_to_response('image_filer/upload.html', {}, context_instance=RequestContext(request))
+    return render_to_response('image_filer/upload.html', {'is_popup': request.REQUEST.has_key('_popup'),}, context_instance=RequestContext(request))
 
 def ajax_upload(request, folder_id=None):
     """
@@ -230,6 +235,14 @@ def discard_clipboard(request):
         clipboard = Clipboard.objects.get( id=request.POST.get('clipboard_id') )
         tools.discard_clipboard(clipboard)
     return HttpResponseRedirect( request.POST.get('redirect_to', '') )
+
+@login_required
+def delete_clipboard(request):
+    if request.method=='POST':
+        clipboard = Clipboard.objects.get( id=request.POST.get('clipboard_id') )
+        tools.delete_clipboard(clipboard)
+    return HttpResponseRedirect( request.POST.get('redirect_to', '') )
+
 
 @login_required
 def move_file_to_clipboard(request):

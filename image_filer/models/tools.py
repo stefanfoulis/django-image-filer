@@ -3,6 +3,10 @@ from image_filer.models import Clipboard
 def discard_clipboard(clipboard):
     clipboard.files.clear()
 
+def delete_clipboard(clipboard):
+    for file in clipboard.files.all():
+        file.delete()
+
 def get_user_clipboard(user):
     if user.is_authenticated():
         clipboard, was_clipboard_created = Clipboard.objects.get_or_create(user=user)

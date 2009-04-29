@@ -2,21 +2,11 @@
 {% load i18n admin_modify adminmedia %}
 
 {% block extrahead %}{{ block.super }}
-<!-- Individual YUI CSS files -->
-<link rel="stylesheet" type="text/css" href="/media/frameworks/yui-2.7.0b/assets/skins/sam/skin.css">
-<!-- Individual YUI JS files -->
-<script type="text/javascript" src="/media/frameworks/yui-2.7.0b/utilities/utilities.js"></script>
-<script type="text/javascript" src="/media/frameworks/yui-2.7.0b/container/container-min.js"></script>
-<script type="text/javascript" src="/media/frameworks/yui-2.7.0b/dragdrop/dragdrop-min.js"></script> 
-<script type="text/javascript" src="/media/frameworks/yui-2.7.0b/menu/menu-min.js"></script>
-<script type="text/javascript" src="/media/frameworks/yui-2.7.0b/button/button-min.js"></script>
-<script type="text/javascript" src="/media/frameworks/yui-2.7.0b/datasource/datasource-min.js"></script>
-<script type="text/javascript" src="/media/frameworks/yui-2.7.0b/calendar/calendar-min.js"></script>
-<script type="text/javascript" src="/media/frameworks/yui-2.7.0b/paginator/paginator-min.js"></script>
-<script type="text/javascript" src="/media/frameworks/yui-2.7.0b/datatable/datatable-min.js"></script>
-<script type="text/javascript" src="/media/frameworks/yui-2.7.0b/logger/logger-min.js"></script>
-<script type="text/javascript" src="/media/frameworks/yui-2.7.0b/uploader/uploader.js"></script>
-<script type="text/javascript" src="/media/frameworks/yui-2.7.0b/cookie/cookie-min.js"></script> 
+<!-- Combo-handled YUI CSS files: -->
+<link rel="stylesheet" type="text/css" href="http://yui.yahooapis.com/combo?2.7.0/build/assets/skins/sam/skin.css">
+<!-- Combo-handled YUI JS files: -->
+<script type="text/javascript" src="http://yui.yahooapis.com/combo?2.7.0/build/utilities/utilities.js&2.7.0/build/container/container_core-min.js&2.7.0/build/menu/menu-min.js&2.7.0/build/button/button-min.js&2.7.0/build/cookie/cookie-min.js&2.7.0/build/datasource/datasource-min.js&2.7.0/build/datatable/datatable-min.js&2.7.0/build/uploader/uploader.js"></script>
+
 
 {% endblock %}
 

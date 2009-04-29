@@ -3,17 +3,16 @@
 {% load adminmedia %}
 
 {% block extrahead %}{{ block.super }}
-<script type="text/javascript" src="js/jquery.js"></script>
-<script type="text/javascript" src="js/jquery.lightbox-0.5.js"></script>
-<link rel="stylesheet" type="text/css" href="css/jquery.lightbox-0.5.css" media="screen" />
+<script type="text/javascript" src="/media/admin/js/admin/RelatedObjectLookups.js"></script>
+<script type="text/javascript">	
+function dismissPopupAndReload(win) {
+	// handle when a popup window is closed and reload the page
+	//alert("it happended!");
+	window.location.reload();
+	win.close();
+}
 
-<script type="text/javascript">
-$(document).ready(function(){
-	alert('hello world');
-});
 </script>
-
-
 {% endblock %}
 
 {% block coltype %}colMS{% endblock %}
@@ -41,12 +40,13 @@ $(document).ready(function(){
 
 
 {% block content %}
-<h1>Directories</h1>
+<h1><img src="/media/img/icons/plainfolder_32x32.png" alt="Folder Icon" /> {{ folder.name }} (Files: {{ folder.file_count }} Folders: {{ folder.children_count }})</h1>
 <div id="content-main">
 	<ul class="object-tools">
-        <li><a id="newFolderButton" href="{% url image_filer-upload %}" class="addlink">{% trans "New Folder" %}</a></li>
-        <li><a id="uploadButton" href="{% url image_filer-upload %}" class="addlink">{% trans "Upload" %}</a></li>
+		<li><a id="id_new_folder" href="{% url image_filer-directory_listing-make_root_folder %}?parent_id={{ folder.id }}" class="addlink" onclick="return showAddAnotherPopup(this);">{% trans "New Folder" %}</a></li>
+		<li><a id="id_upload_files" href="{% url image_filer-upload %}" class="addlink" onclick="return showAddAnotherPopup(this);">{% trans "Upload" %}</a></li>
     </ul>
+	
     <div class="module" id="changelist">
         <div id="toolbartable">
         <table cellspacing="0">
@@ -64,7 +64,7 @@ $(document).ready(function(){
             {% for folder in folder_children %}
                 <tr class="{% cycle rowcolors %}">
 				    <!-- FileIcon -->
-				    <td><img src="/media/img/icons/plainfolder_128x128.png" alt="Folder Icon" /></td>
+				    <td><a href="{% url image_filer-directory_listing folder.id %}"><img src="/media/img/icons/plainfolder_128x128.png" alt="Folder Icon" /></a></td>
 				    <!-- Filename/Dimensions -->
 				    <td>
 				    	<div><b><a href="{% url image_filer-directory_listing folder.id %}">{{ folder.name }}</a></b></div>

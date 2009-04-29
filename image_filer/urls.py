@@ -15,7 +15,8 @@ urlpatterns = patterns('image_filer.views',
     
     url(r'^operations/paste_clipboard_to_folder/$', 'paste_clipboard_to_folder', name='image_filer-paste_clipboard_to_folder'),
     url(r'^operations/clone_files_from_clipboard_to_folder/$', 'clone_files_from_clipboard_to_folder', name='image_filer-clone_files_from_clipboard_to_folder'),
-    url(r'^operations/discard_clipboard/$', 'discard_clipboard', name='image_filer-discard_clipboard'),    
+    url(r'^operations/discard_clipboard/$', 'discard_clipboard', name='image_filer-discard_clipboard'),
+    url(r'^operations/delete_clipboard/$', 'delete_clipboard', name='image_filer-delete_clipboard'),    
     url(r'^operations/move_file_to_clipboard/$', 'move_file_to_clipboard', name='image_filer-move_file_to_clipboard'),
     url(r'^operations/upload/$', 'ajax_upload', name='image_filer-ajax_upload'),
     

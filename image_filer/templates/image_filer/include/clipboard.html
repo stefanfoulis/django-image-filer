@@ -30,6 +30,11 @@
 					<input type="hidden" name="redirect_to" value="{{ current_url }}" />
 					<input type="submit" value="discard" />
 				</form>
+				<form action="{% url image_filer-delete_clipboard %}" method="post"  style="display: inline;">
+					<input type="hidden" name="clipboard_id" value="{{ clipboard.id }}" />
+					<input type="hidden" name="redirect_to" value="{{ current_url }}" />
+					<input type="submit" value="delete files" />
+				</form>
 			</td>
 		</tr>
 	</tfoot>
