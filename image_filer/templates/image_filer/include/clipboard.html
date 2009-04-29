@@ -5,7 +5,7 @@
 	</thead>
 	<tbody>{% if clipboard.files.count %}{% for item in clipboard.files.all %}
 		<tr>
-			<td><img src="{{ item.get_admin_tiny_thumbnail_url }}" alt="{{ item.default_alt_text }}" />{% if item.get_admin_tiny_thumbnail_url %}x{% endif %}</td>
+			<td>{% if item.get_admin_tiny_thumbnail_url %}<img src="{{ item.get_admin_tiny_thumbnail_url }}" alt="{{ item.default_alt_text }}" />{% endif %}</td>
 			<td>{{ item.label }}</td>
 			<td></td>
 		</tr>

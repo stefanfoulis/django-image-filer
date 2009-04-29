@@ -741,10 +741,6 @@ class ImageManipulationTemplateCache(object):
             templates = ImageManipulationTemplate.objects.all()
             for template in templates:
                 self.templates[template.identifier] = template
-            # HACK
-            from image_filer.filters import filters_by_identifier
-            for filter in filters_by_identifier.values():
-                self.templates[filter.identifier] = filter
 
     def reset(self):
         self.templates = {}

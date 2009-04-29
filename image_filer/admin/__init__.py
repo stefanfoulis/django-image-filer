@@ -5,9 +5,6 @@ from django.utils.safestring import mark_safe
 
 from django.contrib.admin import actions
 
-#hack
-import image_filer.admin.filters
-
 admin.site.register([FolderPermission, ImagePermission, ImageManipulationTemplate])
 
 
