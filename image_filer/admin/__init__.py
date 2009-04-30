@@ -66,6 +66,7 @@ class FolderAdmin(admin.ModelAdmin):
     verbose_name = "DEBUG Folder Admin"
     search_fields = ['name', 'image_files__name' ]
     hide_in_appindex = True
+    raw_id_fields = ('owner',)
     
     def get_form(self, request, obj=None, **kwargs):
         """

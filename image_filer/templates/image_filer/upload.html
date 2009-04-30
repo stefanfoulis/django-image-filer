@@ -26,12 +26,13 @@ $(document).ready(function() {
 		'buttonText': 'select files',
 		'simUploadLimit': 1,
 		'scriptData':{'stuff':'there','jsessionid':$.cookie('sessionid')},
-		'onComplete': function() {setTimeout(closeTheWindow(),500);}
+		'onAllComplete': function() {setTimeout(closeTheWindow(),1000);}
 	});
 });
 function closeTheWindow() {
+	//alert('going to close the window...');
 	opener.dismissPopupAndReload(window);
 };
 </script>
-<a href="javascript:window.close()">Cancel</a>
+{% comment %}<a href="javascript:window.close()">Cancel</a>{% endcomment %}
 {% endblock %}

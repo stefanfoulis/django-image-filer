@@ -40,7 +40,7 @@ function dismissPopupAndReload(win) {
 
 
 {% block content %}
-<h1>{% if not folder.is_root %}{% if folder.parent %}<a href="{% url image_filer-directory_listing folder.parent.id %}">&larr;</a>{% else %}<a href="{% url image_filer-directory_listing-root %}">&larr;</a>{% endif %}{% else %}&mdash;{% endif %}<img src="/media/img/icons/plainfolder_32x32.png" alt="Folder Icon" /> {{ folder.name }} (Files: {{ folder.file_count }} Folders: {{ folder.children_count }})</h1>
+<h1>{% if not folder.is_root %}{% if folder.parent %}<a href="{% url image_filer-directory_listing folder.parent.id %}">&larr;</a>{% else %}<a href="{% url image_filer-directory_listing-root %}">&larr;</a>{% endif %}{% else %}&mdash;{% endif %}<img src="/media/img/icons/plainfolder_32x32.png" alt="Folder Icon" /> {{ folder.name }}{% if not folder.is_root %} (Files: {{ folder.file_count }} Folders: {{ folder.children_count }}){% endif %}</h1>
 <div id="content-main">
 	<ul class="object-tools">
 		<li><a id="id_new_folder" href="{% url image_filer-directory_listing-make_root_folder %}?parent_id={{ folder.id }}" class="addlink" onclick="return showAddAnotherPopup(this);">{% trans "New Folder" %}</a></li>

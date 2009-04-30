@@ -48,6 +48,12 @@
 					</td>
 				</tr>
             {% endfor %}
+			{% if not folder.item_count %}
+			<tr class="{% cycle rowcolors %}">
+				    <!-- FileIcon -->
+				    <td colspan="4" class="row1" style="text-align: center;vertical-align: middle;height:128px;color: gray;"> there are no files or subfolders</td>
+				</tr>
+			{% endif %}
             </tbody>
         </table>
         </div>

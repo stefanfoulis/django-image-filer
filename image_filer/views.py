@@ -92,6 +92,7 @@ def directory_listing(request, folder_id=None, images_with_missing_data=False):
             'permissions': permissions,
             'permstest': _userperms(folder, request),
             'current_url': request.path,
+            'title': u'Directory listing for %s' % folder.name,
         }, context_instance=RequestContext(request))
 
 @login_required
@@ -153,7 +154,10 @@ from image_filer.utils.files import generic_handle_file
 
 @login_required
 def upload(request):
-    return render_to_response('image_filer/upload.html', {'is_popup': request.REQUEST.has_key('_popup'),}, context_instance=RequestContext(request))
+    return render_to_response('image_filer/upload.html', {
+                    'is_popup': request.REQUEST.has_key('_popup'),
+                    'title': u'Upload files',
+                    }, context_instance=RequestContext(request))
 
 def ajax_upload(request, folder_id=None):
     """
