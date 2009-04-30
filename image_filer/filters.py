@@ -109,7 +109,7 @@ library.register_builtin_filter(TinyResizeFilterHack)
 class MiddleResizeFilterHack(ResizeFilter):
     name = "Middle Resize Filter Hack"
     identifier = "resize_simple_middle_hack"
-    def render(self, im, size_x=196, size_y=196, crop=True, crop_from='top', upscale=False):
+    def render(self, im, size_x=128, size_y=128, crop=True, crop_from='top', upscale=False):
         return super(MiddleResizeFilterHack, self).render(im, size_x=size_x, size_y=size_y)
 library.register_builtin_filter(MiddleResizeFilterHack)
 
