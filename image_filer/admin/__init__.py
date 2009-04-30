@@ -57,7 +57,8 @@ class AddFolderPopupForm(forms.ModelForm):
         
 
 class FolderAdmin(admin.ModelAdmin):
-    list_display = ('icon_img', 'name', 'owner',)
+    list_display = ('icon_img', 'name',)
+    exclude = ('parent',)
     #list_display_links = ('icon_img', 'name', )
     list_editable =('name', )
     list_per_page = 20
@@ -103,7 +104,8 @@ class ImageManipulationStepInline(admin.TabularInline):
     )
 class ImageManipulationProfileAdmin(admin.ModelAdmin):
     inlines = [ ImageManipulationStepInline, ]
-#admin.site.register(ImageManipulationProfile, ImageManipulationProfileAdmin)
+admin.site.register(ImageManipulationProfile, ImageManipulationProfileAdmin)
+admin.site.register([ImageManipulationTemplate])
 
 
 

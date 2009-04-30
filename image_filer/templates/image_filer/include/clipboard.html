@@ -23,7 +23,7 @@
 					<input type="hidden" name="folder_id" value="{{ folder.id }}" />
 					<input type="hidden" name="clipboard_id" value="{{ clipboard.id }}" />
 					<input type="hidden" name="redirect_to" value="{{ current_url }}" />
-					<input type="submit" value="&larr;" />
+					<input type="submit" value="&larr;"{% if folder.is_root %} disabled="disabled" style="color: gray;"{% endif %} />
 				</form>
 				<form action="{% url image_filer-discard_clipboard %}" method="post"  style="display: inline;">
 					<input type="hidden" name="clipboard_id" value="{{ clipboard.id }}" />
