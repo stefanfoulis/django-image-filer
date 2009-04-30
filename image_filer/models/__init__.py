@@ -803,4 +803,20 @@ class ClipboardItem(models.Model):
     file = models.ForeignKey(Image)
     clipboard = models.ForeignKey(Clipboard)
     is_checked = models.BooleanField(default=True)
-    
+
+
+if 'cms' in settings.INSTALLED_APPS:
+    from cms.models import CMSPlugin
+    class ImagePublication(CMSPlugin):
+        image = models.ForeignKey(Image)
+        alt_text = models.CharField(null=True, blank=True, max_length=255)
+        caption = models.CharField(null=True, blank=True, max_length=255)
+        show_author = models.BooleanField(default=False)
+        show_copyright = models.BooleanField(default=False)
+        def __unicode__(self):
+            if self.image:
+                return self.image.label
+            else:
+                return u"Image Publication %s" % self.caption
+            return s
+        

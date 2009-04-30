@@ -58,6 +58,7 @@ class ImageAdmin(admin.ModelAdmin):
     list_display = ('label','admin_thumbnail', 'has_all_mandatory_data')
     list_per_page = 10
     search_fields = ['name', 'original_filename','default_alt_text','default_caption','usage_restriction_notes','notes', 'author']
+    raw_id_fields = ('contact', 'owner',)
     fieldsets = (
         (None, {
             'fields': ('name', 'contact', 'owner', )
