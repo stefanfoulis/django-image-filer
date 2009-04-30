@@ -74,18 +74,6 @@ class AbstractFile(models.Model):
     class Meta:
         abstract=True
 
-class FolderRoot(object):
-    name = 'Root'
-    is_root = True
-    
-    def _children(self):
-        return Folder.objects.filter(parent__isnull=True)
-    children = property(_children)
-    def _files(self):
-        return []
-    files = property(_files)
-    parent_url = None
-
 class Folder(models.Model):
     """
     Represents a Folder that things (files) can be put into. Folders are *NOT*
@@ -805,6 +793,38 @@ class ClipboardItem(models.Model):
     file = models.ForeignKey(Image)
     clipboard = models.ForeignKey(Clipboard)
     is_checked = models.BooleanField(default=True)
+
+
+class DummyFolder(object):
+    name = "Dummy Folder"
+    is_root = True
+    parent = None
+    children = Folder.objects.filter(id__in=[0]) # empty queryset
+    files = Image.objects.filter(id__in=[0]) # empty queryset
+    parent_url = None
+
+class UnfiledImages(DummyFolder):
+    name = "Unfiled Files"
+    is_root = True
+    def _files(self):
+        return Image.objects.filter(folder__isnull=True)
+    files = property(_files)
+
+class ImagesWithMissingData(DummyFolder):
+    name = "Unfiled Files"
+    is_root = True
+    def _files(self):
+        return Image.objects.filter(has_all_mandatory_data=False)
+    files = property(_files)
+    
+class FolderRoot(DummyFolder):
+    name = 'Root'
+    is_root = True
+    
+    def _children(self):
+        return Folder.objects.filter(parent__isnull=True)
+    children = property(_children)
+    parent_url = None
 
 
 if 'cms' in settings.INSTALLED_APPS:

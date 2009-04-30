@@ -8,7 +8,8 @@ urlpatterns = patterns('image_filer.views',
     
     url(r'^directory/(?P<folder_id>\d+)/upload/$', 'upload', name='image_filer-upload'),
     
-    url(r'^directory/images_with_missing_data/$', 'directory_listing', {'images_with_missing_data': True}, name='image_filer-directory_listing-images_with_missing_data'),
+    url(r'^util/images_with_missing_data/$', 'directory_listing', {'viewtype': 'images_with_missing_data'}, name='image_filer-directory_listing-images_with_missing_data'),
+    url(r'^util/unfiled_images/$', 'directory_listing', {'viewtype': 'unfiled_images'}, name='image_filer-directory_listing-unfiled_images'),
 
     #url(r'^file/move_to_folder/$', 'move_files_to_folder', name='image_filer-move_files_to_folder'),
     url(r'^upload/$', 'upload', name='image_filer-upload'),

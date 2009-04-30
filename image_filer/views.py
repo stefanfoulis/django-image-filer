@@ -6,8 +6,9 @@ from django.http import HttpResponseRedirect, HttpResponse, HttpResponseForbidde
 from django.contrib.sessions.models import Session
 from django.conf import settings
 
-from models import Folder, FolderRoot, Image, Clipboard, ClipboardItem
+from models import Folder, Image, Clipboard, ClipboardItem
 from models import tools
+from models import FolderRoot, UnfiledImages, ImagesWithMissingData
 
 from django import forms
 
@@ -26,26 +27,18 @@ def _userperms(item, request):
             if x:
                 r.append( p )
     return r
-class ImagesWithMissingDataRoot(FolderRoot):
-    def _children(self):
-        return []
-    children = property(_children)
-    def _files(self):
-        return Image.objects.filter(has_all_mandatory_data=False)
-    files = property(_files)
     
 @login_required
-def directory_listing(request, folder_id=None, images_with_missing_data=False):
-    new_folder_form = NewFolderForm()
-    if images_with_missing_data:
-        folder = ImagesWithMissingDataRoot()
+def directory_listing(request, folder_id=None, viewtype=None):
+    clipboard = tools.get_user_clipboard(request.user)
+    if viewtype=='images_with_missing_data':
+        folder = ImagesWithMissingData()
+    elif viewtype=='unfiled_images':
+        folder = UnfiledImages()
     elif folder_id == None:
         folder = FolderRoot()
     else:
         folder = Folder.objects.get(id=folder_id)
-    
-    # Debug    
-    upload_file_form = UploadFileForm()
     
     folder_children = []
     folder_files = []
@@ -64,7 +57,6 @@ def directory_listing(request, folder_id=None, images_with_missing_data=False):
             else:
                 folder_children.append(f) 
         for f in folder.files:
-            print f
             f.perms = _userperms(f, request)
             if hasattr(f, 'has_read_permission'):
                 if f.has_read_permission(request):
@@ -79,16 +71,10 @@ def directory_listing(request, folder_id=None, images_with_missing_data=False):
         }
     except:
         permissions = {}
-    
-    #print folder_files
-    #print folder_children
-    print request.GET.get('_popup',0)
     return render_to_response('image_filer/directory_listing.html', {
             'folder':folder,
             'folder_children':folder_children,
             'folder_files':folder_files,
-            'new_folder_form': new_folder_form,
-            'upload_file_form': upload_file_form,
             'permissions': permissions,
             'permstest': _userperms(folder, request),
             'current_url': request.path,

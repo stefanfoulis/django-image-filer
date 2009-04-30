@@ -5,6 +5,9 @@ from django.utils.safestring import mark_safe
 from django.forms.models import modelform_factory, modelformset_factory, inlineformset_factory
 from django.contrib.admin.util import unquote, flatten_fieldsets, get_deleted_objects, model_ngettext, model_format_dict
 from django import forms
+from django.utils.translation import ugettext as _
+from django.utils.translation import ngettext, ugettext_lazy
+from django.utils.encoding import force_unicode
 
 from django.contrib.admin import actions
 
@@ -46,6 +49,16 @@ class ImageAdmin(admin.ModelAdmin):
         #    'fields': ('manipulation_profile', )
         #}),
     )
+    def response_change(self, request, obj):
+        r = super(ImageAdmin, self).response_change(request, obj)
+        if r['Location']:
+            if obj.folder:
+                url = reverse('image_filer-directory_listing', 
+                              kwargs={'folder_id': obj.folder.id})
+            else:
+                url = reverse('image_filer-directory_listing-unfiled_images')
+            return HttpResponseRedirect(url)
+        return r
 admin.site.register(Image, ImageAdmin)
 #X = ["image_files__%s" % x for x in ImageAdmin.search_fields]
 
@@ -90,6 +103,20 @@ class FolderAdmin(admin.ModelAdmin):
             parent = Folder.objects.get(id=parent_id)
             r.parent = parent
         return r
+    def response_change(self, request, obj):
+        """
+        Determines the HttpResponse for the change_view stage.
+        """
+        r = super(FolderAdmin, self).response_change(request, obj)
+        if r['Location']:
+            # this must have been a successful save... do the hackish trickery
+            if obj.parent:
+                url = reverse('image_filer-directory_listing', 
+                              kwargs={'folder_id': obj.parent.id})
+            else:
+                url = reverse('image_filer-directory_listing-root')
+            return HttpResponseRedirect(url)
+        return r
     
     def icon_img(self,xs):
         return mark_safe('<img src="/media/img/icons/plainfolder_32x32.png" alt="Folder Icon" />')
@@ -105,8 +132,8 @@ class ImageManipulationStepInline(admin.TabularInline):
     )
 class ImageManipulationProfileAdmin(admin.ModelAdmin):
     inlines = [ ImageManipulationStepInline, ]
-admin.site.register(ImageManipulationProfile, ImageManipulationProfileAdmin)
-admin.site.register([ImageManipulationTemplate])
+#admin.site.register(ImageManipulationProfile, ImageManipulationProfileAdmin)
+#admin.site.register([ImageManipulationTemplate])
 
 
 

@@ -20,7 +20,7 @@
 				    <!-- Filename/Dimensions -->
 				    <td>
 				    	<div><b><a href="{% url image_filer-directory_listing folder.id %}">{{ folder.name }}</a></b></div>
-						<div>{{ folder.owner }}</div>
+						<div>owner: {{ folder.owner }} Folders: {{ folder.children_count }} Images: {{ folder.file_count }}</div>
 					</td>
 					<td><a class="changelink" href="/admin/image_filer/folder/{{ folder.id }}">Change</a></td>
 					<td></td>
@@ -38,7 +38,7 @@
 						{% if not file.is_original %}<div>clone</div>{% endif %}
 						{% if file.has_all_mandatory_data %}<div><img alt="0" src="/media/admin/img/admin/icon-yes.gif" /> has all mandatory metadata</div>{% else %}<div><img alt="1" src="/media/admin/img/admin/icon-no.gif"/> missing metadata!</div>{% endif %}
 					</td>
-					<td></td>
+					<td><a class="changelink" href="/admin/image_filer/image/{{ file.id }}">Change</a></td>
 					<td style="text-align: right;">
 						<form action="{% url image_filer-move_file_to_clipboard %}" method="post">
 							<input type="hidden" name="file_id" value="{{ file.id }}" />
@@ -48,12 +48,12 @@
 					</td>
 				</tr>
             {% endfor %}
-			{% ifequal folder.item_count 0 %}
+			{% if not folder.is_root%}{% ifequal folder.item_count 0 %}
 			<tr class="{% cycle rowcolors %}">
 				    <!-- FileIcon -->
 				    <td colspan="4" class="row1" style="text-align: center;vertical-align: middle;height:128px;color: gray;"> there are no files or subfolders</td>
 				</tr>
-			{% endifequal %}
+			{% endifequal %}{% endif %}
             </tbody>
         </table>
         </div>
