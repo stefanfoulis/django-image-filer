@@ -76,6 +76,7 @@ class AbstractFile(models.Model):
 
 class FolderRoot(object):
     name = 'Root'
+    is_root = True
     
     def _children(self):
         return Folder.objects.filter(parent__isnull=True)
@@ -96,6 +97,7 @@ class Folder(models.Model):
     (Duck Type).
     """
     file_type = 'Folder'
+    is_root = False
     
     parent = models.ForeignKey('self', null=True, blank=True, related_name='children')
     name = models.CharField(max_length=255)

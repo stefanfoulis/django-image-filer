@@ -8,37 +8,7 @@ from django import forms
 
 from django.contrib.admin import actions
 
-admin.site.register([FolderPermission, ImagePermission, ImageManipulationTemplate])
-
-
-print models
-
-class DirectoryTest(Folder):
-    """
-    Dummy Directory Model to allow the addition of an entry in the app menu
-    """
-    def label_link(self):
-        return mark_safe( '<a href="/admin/image_filer/directory/?folder_id=%s">%s</a>' % (self.id, self.label) ) 
-    
-    def icon_link(self):
-        return mark_safe( '<img src="/media/img/icons/plainfolder.png" alt="Folder Icon" />' )
-    
-    class Meta:
-        proxy = True
-        verbose_name = "[TEST] Directory Test"
-        verbose_name_plural = "[TEST] Directory Tests"
-
-class DirectoryTestAdmin(admin.ModelAdmin):
-    list_display = ('icon_link','label_link',)
-    def queryset(self, request):
-        folder_id = request.GET.get('folder_id', None)
-        qs = super(DirectoryAdmin, self).queryset(request)
-        if folder_id:
-            qs = qs.filter(parent=int(folder_id))
-        else:
-            qs = qs.filter(parent__isnull=True)
-        return qs
-admin.site.register([DirectoryTest], DirectoryTestAdmin)
+admin.site.register([FolderPermission, ImagePermission])
 
 class Directory(Folder):
     """
@@ -71,10 +41,10 @@ class ImageAdmin(admin.ModelAdmin):
             #'classes': ('collapse',),
             'fields': ('can_use_for_web', 'can_use_for_print','can_use_for_teaching','can_use_for_research','can_use_for_private_use')
         }),
-        ('Manipulation (only works with cloned images)', {
+        #('Manipulation (only works with cloned images)', {
             #'classes': ('collapse',),
-            'fields': ('manipulation_profile', )
-        }),
+        #    'fields': ('manipulation_profile', )
+        #}),
     )
 admin.site.register(Image, ImageAdmin)
 #X = ["image_files__%s" % x for x in ImageAdmin.search_fields]
@@ -94,6 +64,7 @@ class FolderAdmin(admin.ModelAdmin):
     list_filter = ('owner',)
     verbose_name = "DEBUG Folder Admin"
     search_fields = ['name', 'image_files__name' ]
+    hide_in_appindex = True
     
     def get_form(self, request, obj=None, **kwargs):
         """
@@ -132,7 +103,7 @@ class ImageManipulationStepInline(admin.TabularInline):
     )
 class ImageManipulationProfileAdmin(admin.ModelAdmin):
     inlines = [ ImageManipulationStepInline, ]
-admin.site.register(ImageManipulationProfile, ImageManipulationProfileAdmin)
+#admin.site.register(ImageManipulationProfile, ImageManipulationProfileAdmin)
 
 
 
@@ -144,4 +115,4 @@ class ClipboardAdmin(admin.ModelAdmin):
     filter_horizontal = ('files',)
     raw_id_fields = ('user',)
     verbose_name = "DEBUG Clipboard"
-admin.site.register(Clipboard, ClipboardAdmin)
+#admin.site.register(Clipboard, ClipboardAdmin)
