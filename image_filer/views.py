@@ -5,6 +5,7 @@ from django.template import RequestContext
 from django.http import HttpResponseRedirect, HttpResponse, HttpResponseForbidden,HttpResponseBadRequest
 from django.contrib.sessions.models import Session
 from django.conf import settings
+from django.db.models import Q
 
 from models import Folder, Image, Clipboard, ClipboardItem
 from models import tools
@@ -39,30 +40,59 @@ def directory_listing(request, folder_id=None, viewtype=None):
         folder = FolderRoot()
     else:
         folder = Folder.objects.get(id=folder_id)
+        
+    # search
+    def filter_folder(qs, terms=[]):
+        for term in terms:
+            qs = qs.filter(Q(name__icontains=term) | Q(owner__username__icontains=term) | Q(owner__first_name__icontains=term) | Q(owner__last_name__icontains=term)  )  
+        return qs
+    def filter_image(qs, terms=[]):
+        for term in terms:
+            qs = qs.filter( Q(name__icontains=term) | Q(original_filename__icontains=term ) | Q(owner__username__icontains=term) | Q(owner__first_name__icontains=term) | Q(owner__last_name__icontains=term) )
+        return qs
+    q = request.GET.get('q', None)
+    if q:
+        search_terms = q.split(" ")
+    else:
+        search_terms = []
+    limit_search_to_folder = request.GET.get('limit_search_to_folder', False) in (True, 'on')
+
+    if len(search_terms)>0:
+        if folder and limit_search_to_folder and not folder.is_root:
+            folder_qs = folder.get_descendants()
+            # TODO: check how folder__in=folder.get_descendats() performs in large trees
+            image_qs = Image.objects.filter(folder__in=folder.get_descendants())
+        else:
+            folder_qs = Folder.objects.all()
+            image_qs = Image.objects.all()
+        folder_qs = filter_folder(folder_qs, search_terms)
+        image_qs = filter_image(image_qs, search_terms)
+            
+        show_result_count = True
+    else:
+        folder_qs = folder.children.all()
+        image_qs = folder.image_files.all()
+        show_result_count = False
+    
+    folder_qs = folder_qs.order_by('name')
+    image_qs = image_qs.order_by('name')
     
     folder_children = []
     folder_files = []
-    if issubclass(type(folder), FolderRoot):
-        for f in folder.children:
-            f.perms = _userperms(f, request)
-            folder_children.append(f)
-        for f in folder.files:
-            folder_files.append(f)
-    else:
-        for f in folder.children.all():
-            f.perms = _userperms(f, request)
-            if hasattr(f, 'has_read_permission'):
-                if f.has_read_permission(request):
-                    folder_children.append(f)
-            else:
-                folder_children.append(f) 
-        for f in folder.files:
-            f.perms = _userperms(f, request)
-            if hasattr(f, 'has_read_permission'):
-                if f.has_read_permission(request):
-                    folder_files.append(f)
-            else:
+    for f in folder_qs:
+        f.perms = _userperms(f, request)
+        if hasattr(f, 'has_read_permission'):
+            if f.has_read_permission(request):
+                folder_children.append(f)
+        else:
+            folder_children.append(f) 
+    for f in image_qs:
+        f.perms = _userperms(f, request)
+        if hasattr(f, 'has_read_permission'):
+            if f.has_read_permission(request):
                 folder_files.append(f)
+        else:
+            folder_files.append(f)
     try:
         permissions = {
             'has_edit_permission': folder.has_edit_permission(request),
@@ -79,6 +109,9 @@ def directory_listing(request, folder_id=None, viewtype=None):
             'permstest': _userperms(folder, request),
             'current_url': request.path,
             'title': u'Directory listing for %s' % folder.name,
+            'search_string': ' '.join(search_terms),
+            'show_result_count': show_result_count,
+            'limit_search_to_folder': limit_search_to_folder,
         }, context_instance=RequestContext(request))
 
 @login_required

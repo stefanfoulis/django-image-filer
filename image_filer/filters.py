@@ -58,7 +58,7 @@ class BaseFilter(object):
 class ResizeFilter(BaseFilter):
     name = "Resize to specified dimensions"
     identifier = "resize_simple"
-    def render(self, im, size_x=128, size_y=128, crop=True, crop_from='top', upscale=True):
+    def render(self, im, size_x=32, size_y=32, crop=True, crop_from='top', upscale=True):
         cur_width, cur_height = im.size
         new_width, new_height = (size_x, size_y)
         if crop:

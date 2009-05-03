@@ -38,9 +38,9 @@ function dismissPopupAndReload(win) {
 </div>
 {% endblock %}
 
-
+{% block content_title %}<h1>{% if not folder.is_root %}{% if folder.parent %}<a href="{% url image_filer-directory_listing folder.parent.id %}">&larr;</a>{% else %}<a href="{% url image_filer-directory_listing-root %}">&larr;</a>{% endif %}{% else %}&mdash;{% endif %}<img src="/media/img/icons/plainfolder_32x32.png" alt="Folder Icon" /> {{ folder.name }}{% if not folder.is_root %}
+ <span class="small quiet">({% blocktrans count folder.children_count as counter %}1 folder{% plural %}{{ counter }} folder{% endblocktrans %}, {% blocktrans count folder.file_count as counter %}1 file{% plural %}{{ counter }} files{% endblocktrans %}){% endif %}</span></h1>{% endblock %}
 {% block content %}
-<h1>{% if not folder.is_root %}{% if folder.parent %}<a href="{% url image_filer-directory_listing folder.parent.id %}">&larr;</a>{% else %}<a href="{% url image_filer-directory_listing-root %}">&larr;</a>{% endif %}{% else %}&mdash;{% endif %}<img src="/media/img/icons/plainfolder_32x32.png" alt="Folder Icon" /> {{ folder.name }}{% if not folder.is_root %} (Files: {{ folder.file_count }} Folders: {{ folder.children_count }}){% endif %}</h1>
 <div id="content-main">
 	<ul class="object-tools">
 		<li><a id="id_missing_data_images" href="{% url image_filer-directory_listing-images_with_missing_data %}" class="link">Images with missing mandatory data</a></li>
@@ -50,6 +50,7 @@ function dismissPopupAndReload(win) {
     </ul>
 	
     <div class="module" id="changelist">
+    	{% include "image_filer/include/search_form.html" %}
         {% include "image_filer/include/directory_table.html" %}
     </div>
 </div>

@@ -103,12 +103,11 @@ class Folder(models.Model):
     def _get_file_relationships(self):
         # TODO: make this a "multi iterator" that can iterate over multiple
         #         querysets without having to load all objects
-        rel_attr = []
         rel = []
         for attr in dir(self):
             if not attr.startswith('_') and attr.endswith('_files'):
                 # TODO: also check for fieldtype
-                rel_attr.append(attr)
+                #print attr
                 rel.append(getattr(self, attr))
         return rel
     
@@ -168,7 +167,7 @@ class Folder(models.Model):
             return getattr(self, att_name)
     
     def __unicode__(self):
-        return u"<%s: '%s'>" % (self.__class__.__name__, self.name)
+        return u"%s" % (self.name,)
     class Meta:
         unique_together = (('parent','name'),)
         ordering = ('name',)
@@ -802,6 +801,9 @@ class DummyFolder(object):
     children = Folder.objects.filter(id__in=[0]) # empty queryset
     files = Image.objects.filter(id__in=[0]) # empty queryset
     parent_url = None
+    @property
+    def image_files(self):
+        return self.files
 
 class UnfiledImages(DummyFolder):
     name = "Unfiled Files"

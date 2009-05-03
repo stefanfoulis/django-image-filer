@@ -1,0 +1,16 @@
+{% load adminmedia %}
+{% load i18n %}
+<div id="toolbar"><form id="changelist-search" action="" method="get">
+<div><!-- DIV needed for valid HTML -->
+<label for="searchbar"><img src="{% admin_media_prefix %}img/admin/icon_searchbox.png" alt="Search" /></label>
+<input type="text" size="40" name="q" value="{{ search_string }}" id="searchbar" />
+<input type="submit" value="{% trans 'Go' %}" />
+<input type="checkbox" id="limit_search_to_folder" name="limit_search_to_folder"{% if limit_search_to_folder %} checked{% endif %} /> <label for="limit_search_to_folder">limit search to current folder</label>
+{% if show_result_count %}
+<span class="small quiet">(found {% blocktrans count folder_children|length as counter %}1 folder{% plural %}{{ counter }} folders{% endblocktrans %} and
+{% blocktrans count folder_files|length as counter %}1 image{% plural %}{{ counter }} images{% endblocktrans %}) <a href="?">forget search</a></span>
+
+{% endif %}
+</div>
+</form></div>
+<script type="text/javascript">document.getElementById("searchbar").focus();</script>

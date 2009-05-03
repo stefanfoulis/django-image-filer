@@ -132,8 +132,8 @@ class ImageManipulationStepInline(admin.TabularInline):
     )
 class ImageManipulationProfileAdmin(admin.ModelAdmin):
     inlines = [ ImageManipulationStepInline, ]
-#admin.site.register(ImageManipulationProfile, ImageManipulationProfileAdmin)
-#admin.site.register([ImageManipulationTemplate])
+admin.site.register(ImageManipulationProfile, ImageManipulationProfileAdmin)
+admin.site.register([ImageManipulationTemplate])
 
 
 
