@@ -32,7 +32,7 @@
 					<td>{% if file.get_admin_tiny_thumbnail_url %}<a href="/admin/image_filer/image/{{ file.id }}/"><img src="{{ file.get_admin_tiny_thumbnail_url }}" alt="{{ file.default_alt_text }}" /></a>{% endif %}</td>
 				    <!-- Filename/Dimensions -->
 				    <td>
-				    	<div><b><a href="/admin/image_filer/image/{{ file.id }}/">{{ file.label }}</a></b></div>
+				    	<div><b><a href="/admin/image_filer/image/{{ file.id }}/"{% if is_popup %} onclick="opener.dismissRelatedLookupPopup(window, {{ file.id }}); return false;"{% endif %}>{{ file.label }}</a></b></div>
 						<div><span class="tiny">{{ file.file.width }} x {{ file.file.height }} px</span></div>
 						<div>owner: {{ file.owner }}</div>
 						{% if not file.is_original %}<div>clone</div>{% endif %}
@@ -43,6 +43,7 @@
 						<form action="{% url image_filer-move_file_to_clipboard %}" method="post">
 							<input type="hidden" name="file_id" value="{{ file.id }}" />
 							<input type="hidden" name="redirect_to" value="{{ current_url }}" />
+							{% if is_popup %}<input type="hidden" name="_popup" value="1" />{% endif %}
 							<input type="submit" value="&rarr;" />
 						</form>
 					</td>

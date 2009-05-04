@@ -87,6 +87,7 @@ class Folder(models.Model):
     """
     file_type = 'Folder'
     is_root = False
+    can_have_subfolders = True
     
     parent = models.ForeignKey('self', null=True, blank=True, related_name='children')
     name = models.CharField(max_length=255)
@@ -798,6 +799,7 @@ class ClipboardItem(models.Model):
 class DummyFolder(object):
     name = "Dummy Folder"
     is_root = True
+    can_have_subfolders = False
     parent = None
     children = Folder.objects.filter(id__in=[0]) # empty queryset
     files = Image.objects.filter(id__in=[0]) # empty queryset
@@ -823,6 +825,7 @@ class ImagesWithMissingData(DummyFolder):
 class FolderRoot(DummyFolder):
     name = 'Root'
     is_root = True
+    can_have_subfolders = True
     
     def _children(self):
         return Folder.objects.filter(parent__isnull=True)

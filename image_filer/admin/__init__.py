@@ -8,8 +8,10 @@ from django import forms
 from django.utils.translation import ugettext as _
 from django.utils.translation import ngettext, ugettext_lazy
 from django.utils.encoding import force_unicode
+from django.conf import settings
 
 from django.contrib.admin import actions
+from wx._windows import HIDE_READONLY
 
 admin.site.register([FolderPermission, ImagePermission])
 
@@ -132,8 +134,10 @@ class ImageManipulationStepInline(admin.TabularInline):
     )
 class ImageManipulationProfileAdmin(admin.ModelAdmin):
     inlines = [ ImageManipulationStepInline, ]
-admin.site.register(ImageManipulationProfile, ImageManipulationProfileAdmin)
-admin.site.register([ImageManipulationTemplate])
+HIDE_IMAGE_MANIPULATION = hasattr(settings, 'HIDE_FILTER_MANIPULATION_IN_IMAGE_FILER_ADMIN') and getattr(settings,'HIDE_FILTER_MANIPULATION_IN_IMAGE_FILER_ADMIN')
+if not HIDE_IMAGE_MANIPULATION:
+    admin.site.register(ImageManipulationProfile, ImageManipulationProfileAdmin)
+    admin.site.register([ImageManipulationTemplate])
 
 
 

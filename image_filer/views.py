@@ -18,6 +18,13 @@ class NewFolderForm(forms.ModelForm):
         model = Folder
         fields = ('name', )
 
+def popup_status(request):
+    return request.REQUEST.has_key('_popup') or request.REQUEST.has_key('pop')
+def popup_param(request):
+    if popup_status(request):
+        return "?_popup=1"
+    else:
+        return ""
 def _userperms(item, request):
     r = []
     ps = ['read', 'edit', 'add_children']
@@ -121,6 +128,7 @@ def edit_folder(request, folder_id):
     folder=None
     return render_to_response('image_filer/folder_edit.html', {
             'folder':folder,
+            'is_popup': request.REQUEST.has_key('_popup') or request.REQUEST.has_key('pop'),
         }, context_instance=RequestContext(request))
 
 @login_required
@@ -129,6 +137,7 @@ def edit_image(request, folder_id):
     folder=None
     return render_to_response('image_filer/image_edit.html', {
             'folder':folder,
+            'is_popup': request.REQUEST.has_key('_popup') or request.REQUEST.has_key('pop'),
         }, context_instance=RequestContext(request))
 
 @login_required
@@ -162,7 +171,7 @@ def make_folder(request, folder_id=None):
         new_folder_form = NewFolderForm()
     return render_to_response('image_filer/include/new_folder_form.html', {
             'new_folder_form': new_folder_form,
-            'is_popup': request.REQUEST.has_key('_popup'),
+            'is_popup': request.REQUEST.has_key('_popup') or request.REQUEST.has_key('pop'),
     }, context_instance=RequestContext(request))
 
 class UploadFileForm(forms.ModelForm):
@@ -175,8 +184,8 @@ from image_filer.utils.files import generic_handle_file
 @login_required
 def upload(request):
     return render_to_response('image_filer/upload.html', {
-                    'is_popup': request.REQUEST.has_key('_popup'),
                     'title': u'Upload files',
+                    'is_popup': popup_status(request),
                     }, context_instance=RequestContext(request))
 
 def ajax_upload(request, folder_id=None):
@@ -242,7 +251,7 @@ def paste_clipboard_to_folder(request):
         clipboard = Clipboard.objects.get( id=request.POST.get('clipboard_id') )
         tools.move_files_from_clipboard_to_folder(clipboard, folder)
         tools.discard_clipboard(clipboard)
-    return HttpResponseRedirect( request.POST.get('redirect_to', '') )
+    return HttpResponseRedirect( '%s%s' % (request.POST.get('redirect_to', ''), popup_param(request) ) )
 
 @login_required
 def clone_clipboard_to_folder(request):
@@ -251,21 +260,21 @@ def clone_clipboard_to_folder(request):
         clipboard = Clipboard.objects.get( id=request.POST.get('clipboard_id') )
         tools.move_files_from_clipboard_to_folder(clipboard, folder)
         tools.discard_clipboard(clipboard)
-    return HttpResponseRedirect( request.POST.get('redirect_to', '') )
+    return HttpResponseRedirect( '%s%s' % (request.POST.get('redirect_to', ''), popup_param(request) ) )
 
 @login_required
 def discard_clipboard(request):
     if request.method=='POST':
         clipboard = Clipboard.objects.get( id=request.POST.get('clipboard_id') )
         tools.discard_clipboard(clipboard)
-    return HttpResponseRedirect( request.POST.get('redirect_to', '') )
+    return HttpResponseRedirect( '%s%s' % (request.POST.get('redirect_to', ''), popup_param(request) ) )
 
 @login_required
 def delete_clipboard(request):
     if request.method=='POST':
         clipboard = Clipboard.objects.get( id=request.POST.get('clipboard_id') )
         tools.delete_clipboard(clipboard)
-    return HttpResponseRedirect( request.POST.get('redirect_to', '') )
+    return HttpResponseRedirect( '%s%s' % (request.POST.get('redirect_to', ''), popup_param(request) ) )
 
 
 @login_required
@@ -276,7 +285,7 @@ def move_file_to_clipboard(request):
         if file_id:
             file = Image.objects.get(id=file_id)
             tools.move_file_to_clipboard([file], clipboard)
-    return HttpResponseRedirect( request.POST.get('redirect_to', '') )
+    return HttpResponseRedirect( '%s%s' % (request.POST.get('redirect_to', ''), popup_param(request) ) )
 
 @login_required
 def clone_files_from_clipboard_to_folder(request):
@@ -284,7 +293,7 @@ def clone_files_from_clipboard_to_folder(request):
         clipboard = Clipboard.objects.get( id=request.POST.get('clipboard_id') )
         folder = Folder.objects.get( id=request.POST.get('folder_id') )
         tools.clone_files_from_clipboard_to_folder(clipboard, folder)
-    return HttpResponseRedirect( request.POST.get('redirect_to', '') )
+    return HttpResponseRedirect( '%s%s' % (request.POST.get('redirect_to', ''), popup_param(request) ) )
 
 class ImageExportForm(forms.Form):
     FORMAT_CHOICES = (
