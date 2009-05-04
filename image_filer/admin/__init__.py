@@ -11,7 +11,6 @@ from django.utils.encoding import force_unicode
 from django.conf import settings
 
 from django.contrib.admin import actions
-from wx._windows import HIDE_READONLY
 
 admin.site.register([FolderPermission, ImagePermission])
 
