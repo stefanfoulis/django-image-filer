@@ -29,7 +29,7 @@
 			{% for file in folder_files %}
                 <tr class="{% cycle rowcolors %}">
 				    <!-- FileIcon -->
-					<td>{% if file.get_admin_tiny_thumbnail_url %}<a href="/admin/image_filer/image/{{ file.id }}/"><img src="{{ file.get_admin_tiny_thumbnail_url }}" alt="{{ file.default_alt_text }}" /></a>{% endif %}</td>
+					<td>{% if file.get_admin_thumbnail_url %}<a href="/admin/image_filer/image/{{ file.id }}/"><img src="{{ file.get_admin_thumbnail_url }}" alt="{{ file.default_alt_text }}" /></a>{% endif %}</td>
 				    <!-- Filename/Dimensions -->
 				    <td>
 				    	<div><b><a href="/admin/image_filer/image/{{ file.id }}/"{% if is_popup %} onclick="opener.dismissRelatedLookupPopup(window, {{ file.id }}); return false;"{% endif %}>{{ file.label }}</a></b></div>
