@@ -11,7 +11,7 @@ class ImagePlugin(CMSPluginBase):
     render_template = "image_filer/cms/image.html"
     text_enabled = True
     #form = ImagePublicationForm
-    raw_id_fields = ('image',)
+    #raw_id_fields = ('image',)
     
     def render(self, context, instance, placeholder):
         return {'image':instance, 'placeholder':placeholder}

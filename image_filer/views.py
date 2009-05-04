@@ -112,6 +112,7 @@ def directory_listing(request, folder_id=None, viewtype=None):
             'search_string': ' '.join(search_terms),
             'show_result_count': show_result_count,
             'limit_search_to_folder': limit_search_to_folder,
+            'is_popup': request.REQUEST.has_key('_popup') or request.REQUEST.has_key('pop'),
         }, context_instance=RequestContext(request))
 
 @login_required

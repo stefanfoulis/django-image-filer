@@ -10,6 +10,7 @@ from datetime import datetime, date
 from image_filer.utils import EXIF
 
 from image_filer import filters
+from image_filer.fields import ImageFilerModelImageField
 # hack, so admin filters get loaded
 #from image_filer.admin import filters as admin_filters
 
@@ -832,7 +833,7 @@ class FolderRoot(DummyFolder):
 if 'cms' in settings.INSTALLED_APPS:
     from cms.models import CMSPlugin
     class ImagePublication(CMSPlugin):
-        image = models.ForeignKey(Image)
+        image = ImageFilerModelImageField(Image)
         alt_text = models.CharField(null=True, blank=True, max_length=255)
         caption = models.CharField(null=True, blank=True, max_length=255)
         show_author = models.BooleanField(default=False)
