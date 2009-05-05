@@ -49,11 +49,11 @@ function dismissPopupAndReload(win) {
 {% block content %}
 <div id="content-main">
 	<ul class="object-tools">
+		{% if folder.can_have_subfolders %}<li><a id="id_new_folder" href="{% url image_filer-directory_listing-make_root_folder %}?parent_id={{ folder.id }}" class="addlink" onclick="return showAddAnotherPopup(this);">{% trans "New Folder" %}</a>{% endif %}</li>
+		<li><a id="id_upload_files" href="{% url image_filer-upload %}" class="addlink" onclick="return showAddAnotherPopup(this);">{% trans "Upload" %}</a></li>
 		<li><a id="id_directory_root" href="{% url image_filer-directory_listing-root %}{% if is_popup %}?_popup=1{% endif %}" class="link">Root</a></li>
 		<li><a id="id_missing_data_images" href="{% url image_filer-directory_listing-images_with_missing_data %}{% if is_popup %}?_popup=1{% endif %}" class="link">Incomplete Images</a></li>
 		<li><a id="id_unfiled_images" href="{% url image_filer-directory_listing-unfiled_images %}{% if is_popup %}?_popup=1{% endif %}" class="link">Unfiled Images</a></li>
-		{% if folder.can_have_subfolders %}<li><a id="id_new_folder" href="{% url image_filer-directory_listing-make_root_folder %}?parent_id={{ folder.id }}" class="addlink" onclick="return showAddAnotherPopup(this);">{% trans "New Folder" %}</a>{% endif %}</li>
-		<li><a id="id_upload_files" href="{% url image_filer-upload %}" class="addlink" onclick="return showAddAnotherPopup(this);">{% trans "Upload" %}</a></li>
     </ul>
 	
     <div class="module" id="changelist">
