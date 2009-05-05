@@ -58,7 +58,7 @@ class BaseFilter(object):
 class ResizeFilter(BaseFilter):
     name = "Resize to specified dimensions"
     identifier = "resize_simple"
-    def render(self, im, size_x=32, size_y=32, crop=True, crop_from='top', upscale=True):
+    def render(self, im, size_x=48, size_y=48, crop=True, crop_from='top', upscale=True):
         cur_width, cur_height = im.size
         new_width, new_height = (size_x, size_y)
         if crop:
@@ -167,7 +167,24 @@ class ReflectionFilter(BaseFilter):
         # return the image complete with reflection effect
         return composite
 library.register_builtin_filter(ReflectionFilter)
-
+class AdminThumbnailFilter(BaseFilter):
+    name = "Admin Thumbnail Filter"
+    identifier = "admin_thumbnail"
+    def render(self, im):
+        return ResizeFilter().render(im, size_x=48, size_y=48, crop=True, crop_from='top', upscale=True)
+library.register_builtin_filter(AdminThumbnailFilter)
+class AdminTinyThumbnailFilter(BaseFilter):
+    name = "Admin Tiny Thumbnail Filter"
+    identifier = "admin_tiny_thumbnail"
+    def render(self, im):
+        return ResizeFilter().render(im, size_x=32, size_y=32, crop=True, crop_from='top', upscale=True)
+library.register_builtin_filter(AdminTinyThumbnailFilter)
+class AdminSidebarPreviewFilter(BaseFilter):
+    name = "Admin Sidebar Preview Filter"
+    identifier = "admin_sidebar_preview"
+    def render(self, im):
+        return ResizeFilter().render(im, size_x=160, size_y=90, crop=True, crop_from='top', upscale=True)
+library.register_builtin_filter(AdminSidebarPreviewFilter)
 """
 Create image filter objects for all the built in PIL filters
 """

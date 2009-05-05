@@ -11,8 +11,12 @@ function dismissPopupAndReload(win) {
 	window.location.reload();
 	win.close();
 }
-
 </script>
+<style type="text/css">
+	table thead th.thumbHeader {
+		width: 52px;
+	}
+</style>
 {% endblock %}
 
 {% block coltype %}colMS{% endblock %}
@@ -40,12 +44,13 @@ function dismissPopupAndReload(win) {
 {% endblock %}
 
 
-{% block content_title %}<h1>{% if not folder.is_root %}{% if folder.parent %}<a href="{% url image_filer-directory_listing folder.parent.id %}{% if is_popup %}?_popup=1{% endif %}">&larr;</a>{% else %}<a href="{% url image_filer-directory_listing-root %}{% if is_popup %}?_popup=1{% endif %}">&larr;</a>{% endif %}{% else %}&mdash;{% endif %}<img src="/media/img/icons/plainfolder_32x32.png" alt="Folder Icon" /> {{ folder.name }}{% if not folder.is_root %}
- <span class="small quiet">({% blocktrans count folder.children_count as counter %}1 folder{% plural %}{{ counter }} folders{% endblocktrans %}, {% blocktrans count folder.file_count as counter %}1 file{% plural %}{{ counter }} files{% endblocktrans %}){% endif %}</span></h1>{% endblock %}
+{% block content_title %}<h1>&nbsp;</h1>
+{% endblock %}
 {% block content %}
 <div id="content-main">
 	<ul class="object-tools">
-		<li><a id="id_missing_data_images" href="{% url image_filer-directory_listing-images_with_missing_data %}{% if is_popup %}?_popup=1{% endif %}" class="link">Images with missing mandatory data</a></li>
+		<li><a id="id_directory_root" href="{% url image_filer-directory_listing-root %}{% if is_popup %}?_popup=1{% endif %}" class="link">Root</a></li>
+		<li><a id="id_missing_data_images" href="{% url image_filer-directory_listing-images_with_missing_data %}{% if is_popup %}?_popup=1{% endif %}" class="link">Incomplete Images</a></li>
 		<li><a id="id_unfiled_images" href="{% url image_filer-directory_listing-unfiled_images %}{% if is_popup %}?_popup=1{% endif %}" class="link">Unfiled Images</a></li>
 		{% if folder.can_have_subfolders %}<li><a id="id_new_folder" href="{% url image_filer-directory_listing-make_root_folder %}?parent_id={{ folder.id }}" class="addlink" onclick="return showAddAnotherPopup(this);">{% trans "New Folder" %}</a>{% endif %}</li>
 		<li><a id="id_upload_files" href="{% url image_filer-upload %}" class="addlink" onclick="return showAddAnotherPopup(this);">{% trans "Upload" %}</a></li>
@@ -53,6 +58,9 @@ function dismissPopupAndReload(win) {
 	
     <div class="module" id="changelist">
     	{% include "image_filer/include/search_form.html" %}
+		<h1>{% if not folder.is_root %}{% if folder.parent %}<a href="{% url image_filer-directory_listing folder.parent.id %}{% if is_popup %}?_popup=1{% endif %}">&uarr;</a>{% else %}<a href="{% url image_filer-directory_listing-root %}{% if is_popup %}?_popup=1{% endif %}">&uarr;</a>{% endif %}{% else %}&ndash;{% endif %}<img src="/media/image_filer/icons/plainfolder_64x64.png" alt="Folder Icon" /> {{ folder.name }}{% if not folder.is_root %}
+<span class="small quiet">({% blocktrans count folder.children_count as counter %}1 folder{% plural %}{{ counter }} folders{% endblocktrans %}, {% blocktrans count folder.file_count as counter %}1 file{% plural %}{{ counter }} files{% endblocktrans %}){% endif %}</span></h1>
+
         {% include "image_filer/include/directory_table.html" %}
     </div>
 </div>

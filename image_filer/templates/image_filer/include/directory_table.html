@@ -4,8 +4,9 @@
         <table cellspacing="0">
             <thead>
 			    <tr class="{% cycle 'row1' 'row2' as rowcolors %}">
+			    	<th></th>
 				    <!-- THUMB -->
-				    <th>&nbsp;</th>
+				    <th class="thumbHeader">&nbsp;</th>
 				    <!-- FILENAME / FOLDERNAME / DIMENSIONS / OWNER -->
 					<th>{% trans 'Name' %}</th>
 					<th></th>
@@ -15,8 +16,9 @@
             <tbody>
             {% for subfolder in folder_children %}
                 <tr class="{% cycle rowcolors %}">
+                	<td></td>
 				    <!-- FileIcon -->
-				    <td><a href="{% url image_filer-directory_listing subfolder.id %}{% if is_popup %}?_popup=1{% endif %}"><img src="/media/img/icons/plainfolder_32x32.png" alt="Folder Icon" /></a></td>
+				    <td><a href="{% url image_filer-directory_listing subfolder.id %}{% if is_popup %}?_popup=1{% endif %}"><img src="/media/image_filer/icons/plainfolder_48x48.png" alt="Folder Icon" /></a></td>
 				    <!-- Filename/Dimensions -->
 				    <td>
 				    	<div><b><a href="{% url image_filer-directory_listing subfolder.id %}{% if is_popup %}?_popup=1{% endif %}">{{ subfolder.name }}</a></b></div>
@@ -28,6 +30,7 @@
             {% endfor %}
 			{% for file in folder_files %}
                 <tr class="{% cycle rowcolors %}">
+                	<td></td>
 				    <!-- FileIcon -->
 					<td>{% if file.get_admin_thumbnail_url %}<a href="/admin/image_filer/image/{{ file.id }}/"><img src="{{ file.get_admin_thumbnail_url }}" alt="{{ file.default_alt_text }}" /></a>{% endif %}</td>
 				    <!-- Filename/Dimensions -->
@@ -52,7 +55,7 @@
 			{% if not folder.is_root%}{% ifequal folder.item_count 0 %}
 			<tr class="{% cycle rowcolors %}">
 				    <!-- FileIcon -->
-				    <td colspan="4" class="row1" style="text-align: center;vertical-align: middle;height:128px;color: gray;"> there are no files or subfolders</td>
+				    <td colspan="5" class="row1" style="text-align: center;vertical-align: middle;height:128px;color: gray;"> there are no files or subfolders</td>
 				</tr>
 			{% endifequal %}{% endif %}
             </tbody>
