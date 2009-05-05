@@ -1,5 +1,6 @@
 from django.utils.translation import ugettext as _
 from django.utils.text import truncate_words
+from django.utils import simplejson
 from django.db import models
 from django import forms
 from django.contrib.admin.widgets import ForeignKeyRawIdWidget
@@ -9,8 +10,13 @@ from django.conf import settings
 
 class ImageFilerImageWidget(ForeignKeyRawIdWidget):
     choices = None
+    input_type = 'hidden'
+    is_hidden = True
     def render(self, name, value, attrs=None):
         obj = self.obj_for_value(value)
+        css_id = attrs.get('id', 'id_image_x')
+        css_id_thumbnail_img = "%s_thumbnail_img" % css_id
+        css_id_description_txt = "%s_description_txt" % css_id
         if attrs is None:
             attrs = {}
         related_url = reverse('image_filer-directory_listing-root')
@@ -23,16 +29,19 @@ class ImageFilerImageWidget(ForeignKeyRawIdWidget):
             attrs['class'] = 'vForeignKeyRawIdAdminField' # The JavaScript looks for this hook.
         output = []
         if obj:
-            output.append(u'<img src="%s" alt="%s" /> ' % (obj.get_admin_thumbnail_url(), obj.label) )
-        
-        output.append( super(ForeignKeyRawIdWidget, self).render(name, value, attrs) )
+            output.append(u'<img id="%s" src="%s" alt="%s" /> ' % (css_id_thumbnail_img, obj.get_admin_thumbnail_url(), obj.label) )
+            output.append(u'&nbsp;<strong id="%s">%s</strong>' % (css_id_description_txt, obj) )
+        else:
+            output.append(u'<img id="%s" src="" class="quiet" alt="no image selected">' % css_id_thumbnail_img)
+            output.append(u'&nbsp;<strong id="%s">%s</strong>' % (css_id_description_txt, '') )
         # TODO: "id_" is hard-coded here. This should instead use the correct
         # API to determine the ID dynamically.
         output.append('<a href="%s%s" class="related-lookup" id="lookup_id_%s" onclick="return showRelatedObjectLookupPopup(this);"> ' % \
             (related_url, url, name))
         output.append('<img src="%simg/admin/selector-search.gif" width="16" height="16" alt="%s" /></a>' % (settings.ADMIN_MEDIA_PREFIX, _('Lookup')))
-        if value:
-            output.append(self.label_for_value(value))
+        output.append('</br>')
+        super_attrs = attrs.copy()
+        output.append( super(ForeignKeyRawIdWidget, self).render(name, value, super_attrs) )
         return mark_safe(u''.join(output))
     def label_for_value(self, value):
         obj = self.obj_for_value(value)
@@ -53,6 +62,7 @@ class ImageFilerImageFormField(forms.ModelChoiceField):
         self.to_field_name = to_field_name
         self.max_value = None
         self.min_value = None
+        other_widget = kwargs.pop('widget', None)
         forms.Field.__init__(self, widget=self.widget(rel), *args, **kwargs)
 
 class ImageFilerModelImageField(models.ForeignKey):
@@ -65,5 +75,4 @@ class ImageFilerModelImageField(models.ForeignKey):
             'rel': self.rel,
         }
         defaults.update(kwargs)
-        print defaults
         return super(ImageFilerModelImageField, self).formfield(**defaults)

@@ -38,7 +38,7 @@
 						{% if not file.is_original %}<div>clone</div>{% endif %}
 						{% if file.has_all_mandatory_data %}<div><img alt="0" src="/media/admin/img/admin/icon-yes.gif" /> has all mandatory metadata</div>{% else %}<div><img alt="1" src="/media/admin/img/admin/icon-no.gif"/> missing metadata!</div>{% endif %}
 					</td>
-					<td>{% if is_popup %}<a class="insertlink" href="" onclick="opener.dismissRelatedLookupPopup(window, {{ file.id }}); return false;">insert</a>{% else %}<a class="changelink" href="/admin/image_filer/image/{{ file.id }}">Change</a>{% endif %}</td>
+					<td>{% if is_popup %}<a class="insertlink" href="" onclick="opener.dismissRelatedImageLookupPopup(window, {{ file.id }}, '{{ file.get_admin_thumbnail_url|escapejs }}', '{{ file.label|escapejs }}'); return false;">insert</a>{% else %}<a class="changelink" href="/admin/image_filer/image/{{ file.id }}">Change</a>{% endif %}</td>
 					<td style="text-align: right;">
 						<form action="{% url image_filer-move_file_to_clipboard %}" method="post">
 							<input type="hidden" name="file_id" value="{{ file.id }}" />

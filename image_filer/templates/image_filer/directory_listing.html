@@ -41,7 +41,7 @@ function dismissPopupAndReload(win) {
 
 
 {% block content_title %}<h1>{% if not folder.is_root %}{% if folder.parent %}<a href="{% url image_filer-directory_listing folder.parent.id %}{% if is_popup %}?_popup=1{% endif %}">&larr;</a>{% else %}<a href="{% url image_filer-directory_listing-root %}{% if is_popup %}?_popup=1{% endif %}">&larr;</a>{% endif %}{% else %}&mdash;{% endif %}<img src="/media/img/icons/plainfolder_32x32.png" alt="Folder Icon" /> {{ folder.name }}{% if not folder.is_root %}
- <span class="small quiet">({% blocktrans count folder.children_count as counter %}1 folder{% plural %}{{ counter }} folder{% endblocktrans %}, {% blocktrans count folder.file_count as counter %}1 file{% plural %}{{ counter }} files{% endblocktrans %}){% endif %}</span></h1>{% endblock %}
+ <span class="small quiet">({% blocktrans count folder.children_count as counter %}1 folder{% plural %}{{ counter }} folders{% endblocktrans %}, {% blocktrans count folder.file_count as counter %}1 file{% plural %}{{ counter }} files{% endblocktrans %}){% endif %}</span></h1>{% endblock %}
 {% block content %}
 <div id="content-main">
 	<ul class="object-tools">
