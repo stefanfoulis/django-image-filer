@@ -1,1 +1,4 @@
-<img alt="{% if image_publication.alt %}{{ image_publication.alt }}{% endif %}" src="{{ image_publication.image.get_admin_sidebar_thumbnail_url }}" />
+<span class="image">
+	<img alt="{% if image_publication.alt %}{{ image_publication.alt }}{% endif %}" src="{{ image_publication.image.get_admin_sidebar_thumbnail_url }}" />
+	{% if image_publication.caption %}<span class="image_caption">{{ image_publication.caption }}</span>{% endif %}
+</span>
