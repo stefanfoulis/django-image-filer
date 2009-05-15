@@ -19,6 +19,6 @@ class ImagePlugin(CMSPluginBase):
     
     def icon_src(self, instance):
         # TODO - possibly use 'instance' and provide a thumbnail image
-        return instance.image.get_admin_thumbnail()
+        return instance.image.admin_thumbnail()
  
 plugin_pool.register_plugin(ImagePlugin)

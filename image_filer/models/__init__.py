@@ -841,10 +841,11 @@ if 'cms' in settings.INSTALLED_APPS:
         caption = models.CharField(null=True, blank=True, max_length=255)
         show_author = models.BooleanField(default=False)
         show_copyright = models.BooleanField(default=False)
+        
         def __unicode__(self):
             if self.image:
                 return self.image.label
             else:
                 return u"Image Publication %s" % self.caption
-            return s
+            return ''
         
