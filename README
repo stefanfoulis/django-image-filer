@@ -7,3 +7,10 @@ Requirements:
 
 for cms integration:
 - django-cms-2.0
+
+
+Setup
+- add 'image_filer' to INSTALLED_APPS
+- add
+		(r'^admin/image_filer/', include('image_filer.urls')),
+	to your urls.py before url(r'^admin/(.*)', admin.site.root), 
