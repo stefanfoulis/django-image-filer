@@ -6,4 +6,4 @@ Requirements:
 - django 1.1 (trunk)
 
 for cms integration:
-- django-cms-2.0 (use my django-1.1.X branch)
+- django-cms-2.0
