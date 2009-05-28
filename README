@@ -14,3 +14,7 @@ Setup
 - add
 		(r'^admin/image_filer/', include('image_filer.urls')),
 	to your urls.py before url(r'^admin/(.*)', admin.site.root), 
+- make image_filer/media/image_filer available in MEDIA_ROOT
+- import the "default_admin_thumbnail_definitions.json" fixture or define the
+  definitions manually.
+  ./manage.py loaddata /path/to/image/filer/image_filer/fixtures/default_admin_thumbnail_definitions.json
