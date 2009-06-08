@@ -8,7 +8,6 @@ Requirements:
 for cms integration:
 - django-cms-2.0
 
-
 Setup
 - add 'image_filer' to INSTALLED_APPS
 - add
