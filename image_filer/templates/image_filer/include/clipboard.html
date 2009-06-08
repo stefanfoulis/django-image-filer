@@ -1,3 +1,4 @@
+{% load thumbnail %}
 {% for clipboard in user.clipboards.all %}
 <table style="width: 100%; border: 1px solid #DDDDDD;">
 	<thead>
@@ -5,7 +6,7 @@
 	</thead>
 	<tbody>{% if clipboard.files.count %}{% for item in clipboard.files.all %}
 		<tr>
-			<td>{% if item.get_admin_tiny_thumbnail_url %}<img src="{{ item.get_admin_tiny_thumbnail_url }}" alt="{{ item.default_alt_text }}" />{% endif %}</td>
+			<td><img src="{{ item.file.extra_thumbnails.admin_clipboard_icon }}" alt="{{ item.default_alt_text }}" /></td>
 			<td>{{ item.label }}</td>
 			<td></td>
 		</tr>

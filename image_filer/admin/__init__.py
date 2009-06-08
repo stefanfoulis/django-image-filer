@@ -55,6 +55,9 @@ class ImageAdmin(admin.ModelAdmin):
         #    'fields': ('manipulation_profile', )
         #}),
     )
+    def admin_thumbnail(self,xs):
+        return mark_safe('<img src="/media/image_filer/icons/plainfolder_32x32.png" alt="Folder Icon" />')
+    admin_thumbnail.allow_tags = True
     def response_change(self, request, obj):
         '''
         Overrides the default to be able to forward to the directory listing
@@ -81,7 +84,6 @@ class ImageAdmin(admin.ModelAdmin):
         context.update(extra_context)
         return super(ImageAdmin, self).render_change_form(request=request, context=context, add=False, change=False, form_url=form_url, obj=obj)
 admin.site.register(Image, ImageAdmin)
-#X = ["image_files__%s" % x for x in ImageAdmin.search_fields]
 
 class AddFolderPopupForm(forms.ModelForm):
     folder = forms.HiddenInput()
@@ -153,22 +155,6 @@ class FolderAdmin(admin.ModelAdmin):
         return mark_safe('<img src="/media/img/icons/plainfolder_32x32.png" alt="Folder Icon" />')
     icon_img.allow_tags = True
 admin.site.register(Folder, FolderAdmin)
-
-class ImageManipulationStepInline(admin.TabularInline):
-    model = ImageManipulationStep
-    fieldsets = (
-        (None, {
-            'fields': ('filter_identifier', 'data', 'order')
-        }),
-    )
-class ImageManipulationProfileAdmin(admin.ModelAdmin):
-    inlines = [ ImageManipulationStepInline, ]
-HIDE_IMAGE_MANIPULATION = hasattr(settings, 'HIDE_FILTER_MANIPULATION_IN_IMAGE_FILER_ADMIN') and getattr(settings,'HIDE_FILTER_MANIPULATION_IN_IMAGE_FILER_ADMIN')
-if not HIDE_IMAGE_MANIPULATION:
-    admin.site.register(ImageManipulationProfile, ImageManipulationProfileAdmin)
-    admin.site.register([ImageManipulationTemplate])
-
-
 
 class ClipboardItemInline(admin.TabularInline):
     model = ClipboardItem

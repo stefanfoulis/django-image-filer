@@ -194,7 +194,7 @@ def ajax_upload(request, folder_id=None):
     because of the missing cookie. Receives only one file at the time, 
     althow it may be a zip file, that will be unpacked.
     """
-    print request.POST
+    #print request.POST
     # flashcookie-hack (flash does not submit the cookie, so we send the
     # django sessionid over regular post
     engine = __import__(settings.SESSION_ENGINE, {}, {}, [''])
@@ -202,7 +202,7 @@ def ajax_upload(request, folder_id=None):
     # this sucks... session key in get!
     session_key = request.GET.get('jsessionid')
     request.session = engine.SessionStore(session_key)
-    print request.session.session_key, request.user
+    #print request.session.session_key, request.user
     if folder_id:
         folder = Folder.objects.get(id=folder_id)
     else:
@@ -225,17 +225,21 @@ def ajax_upload(request, folder_id=None):
     file = request.FILES.get('Filedata')
     #print request.FILES
     #print original_filename, file
-    clipboard, was_bucket_created = Clipboard.objects.get_or_create(user=request.user)
+    clipboard, was_clipboard_created = Clipboard.objects.get_or_create(user=request.user)
     files = generic_handle_file(file, original_filename)
     for ifile, iname in files:
         iext = os.path.splitext(iname)[1].lower()
-        #print "extension: ", iext
+        print "extension: ", iext
         if iext in ['.jpg','.jpeg','.png','.gif']:
             imageform = UploadFileForm({'original_filename':iname,'owner': request.user.pk}, {'file':ifile})
             if imageform.is_valid():
                 print 'imageform is valid'
-                image = imageform.save(commit=False)
-                image.save()
+                try:
+                    image = imageform.save(commit=False)
+                    image.save()
+                except Exception, e:
+                    print e
+                print "save %s" % image
                 bi = ClipboardItem(clipboard=clipboard, file=image)
                 bi.save()
                 print image

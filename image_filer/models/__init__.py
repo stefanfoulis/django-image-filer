@@ -8,8 +8,7 @@ from django.core.files.storage import FileSystemStorage
 from django.utils.translation import ugettext_lazy as _
 from datetime import datetime, date
 from image_filer.utils import EXIF
-
-from image_filer import filters
+from sorl.thumbnail.fields import ImageWithThumbnailsField
 from image_filer.fields import ImageFilerModelImageField
 # hack, so admin filters get loaded
 #from image_filer.admin import filters as admin_filters
@@ -23,6 +22,9 @@ from django.contrib.auth import models as auth_models
 
 from django.conf import settings
 
+
+'''
+# remove the uuid stuff for now
 try:
     import uuid
 except ImportError:
@@ -40,7 +42,7 @@ uuid_file_system_storage = UUIDFileSystemStorage(
                                 location=CATALOGUE_BASE_PATH,
                                 base_url=CATALOGUE_BASE_URL
                                 )
-
+'''
 class AbstractFile(models.Model):
     """
     Represents a "File-ish" thing that is in a Folder. Any subclasses must
@@ -176,15 +178,21 @@ class Folder(models.Model):
 
 class Image(AbstractFile):
     file_type = 'image'
-    file = models.ImageField(upload_to='catalogue', storage=uuid_file_system_storage, height_field='_file_height', width_field='_file_witdh', null=True, blank=True)
+    file = ImageWithThumbnailsField(
+                    upload_to='catalogue',
+                    #storage=uuid_file_system_storage,
+                    height_field='_height_field', width_field='_width_field', 
+                    thumbnail={'size': (50, 50)},
+                    extra_thumbnails={
+                        'admin_clipboard_icon': {'size': (32,32), 'options': ['crop','upscale']},
+                        'admin_sidebar_preview': {'size': (210,210), 'options': ['crop',]},
+                        'admin_directory_listing_icon': {'size': (48,48), 'options': ['crop','upscale']},
+                    },
+                    null=True, blank=True)
     _height_field = models.IntegerField(null=True, blank=True) 
     _width_field = models.IntegerField(null=True, blank=True)
     
     date_taken = models.DateTimeField(_('date taken'), null=True, blank=True, editable=False)
-    
-    manipulation_profile = models.ForeignKey('ImageManipulationProfile', related_name="images", null=True, blank=True)
-    
-    parent = models.ForeignKey('self', null=True, blank=True, related_name='children')
     
     contact = models.ForeignKey(auth_models.User, related_name='contact_of_files', null=True, blank=True)
     
@@ -208,179 +216,6 @@ class Image(AbstractFile):
     
     has_all_mandatory_data = models.BooleanField(default=False, editable=False)
     
-    def clone(self):
-        return Image(parent=self)
-    def is_original(self):
-        return self.parent==None
-    is_original = property(is_original)
-    def render(self):
-        if self.is_original:
-            # if this is a root image rendering is forbidden... the original
-            # may not be changed
-            return False
-        if not self.file and self.parent:
-            # this is a child image that has no file set yet... generate an id
-            file_ext = os.path.splitext(self.parent.file.name)[1]
-            new_uuid = uuid.uuid4()
-            self.file = "gen-%s.%s" % (new_uuid, file_ext)
-        im = filters.Image.open(self.parent.file.path)
-        # Save the original format
-        im_format = im.format
-        if self.manipulation_profile:
-            im = self.manipulation_profile.render(im)
-        im_filename = '%s' % (self.file.path)
-        try:
-            if im_format != 'JPEG':
-                try:
-                    im.save(im_filename)
-                    return im
-                except KeyError:
-                    pass
-            im.save(im_filename, 'JPEG')
-        except IOError, e:
-            if os.path.isfile(im_filename):
-                os.unlink(im_filename)
-            raise e
-
-    def admin_thumbnail(self):
-        func = getattr(self, 'get_admin_thumbnail_url', None)
-        if func is None:
-            return _('An "admin_thumbnail" photo size has not been defined.')
-        else:
-            if hasattr(self, 'get_absolute_url'):
-                return u'<a href="%s"><img src="%s"></a>' % \
-                    (self.get_absolute_url(), func())
-            else:
-                return u'<a href="%s"><img src="%s"></a>' % \
-                    (self.image.url, func())
-    admin_thumbnail.short_description = _('Thumbnail')
-    admin_thumbnail.allow_tags = True
-    
-    def cache_path(self):
-        if self.file:
-            return os.path.join(os.path.dirname(self.file.path),"cache")
-    cache_path = property(cache_path)
-    def cache_url(self):
-        if self.file:
-            return '/'.join([os.path.dirname(self.file.url), "cache"])
-    cache_url = property(cache_url)
-    
-    def _image_filename(self):
-        if self.file:
-            return os.path.basename(self.file.path)
-    image_filename = property(_image_filename)
-    
-    def _get_filename_for_template(self, template):
-        """
-        template: either a ImageManipulationTemplate instance or just a simple
-        string representing the identifier of one.
-        """
-        template = getattr(template, 'identifier', template)
-        base, ext = os.path.splitext(self.image_filename)
-        return ''.join([base, '_', template, ext])
-    
-    def _get_TEMPLATE_template(self, template):
-        return ImageManipulationTemplateCache().templates.get(template)
-    
-    def _get_TEMPLATE_size(self, template):
-        template = ImageManipulationTemplateCache().templates.get(template)
-        if not self.template_file_exists(template):
-            self.create_template_file(template)
-        return filters.Image.open(self._get_TEMPLATE_filename(template)).size
-    
-    def _get_TEMPLATE_url(self, template):
-        template = ImageManipulationTemplateCache().templates.get(template)
-        if not self.cached_template_file_exists(template):
-            print "generating cache img for %s" % template
-            self.create_template_file_cache(template)
-        return '/'.join( [self.cache_url, self._get_filename_for_template(template)] )
-    
-    def _get_TEMPLATE_filename(self, template):
-        template = ImageManipulationTemplateCache().templates.get(template)
-        return os.path.join( self.cache_path, self._get_filename_for_template(template) )
-    
-    def add_accessor_methods(self, *args, **kwargs):
-        for template in ImageManipulationTemplateCache().templates.keys():
-            setattr(self, 'get_%s_template' % template,
-                    curry(self._get_TEMPLATE_template, template=template))
-            setattr(self, 'get_%s_size' % template,
-                    curry(self._get_TEMPLATE_size, template=template))
-            setattr(self, 'get_%s_url' % template,
-                    curry(self._get_TEMPLATE_url, template=template))
-            setattr(self, 'get_%s_filename' % template,
-                    curry(self._get_TEMPLATE_filename, template=template))
-    
-    def cached_template_file_exists(self, template):
-        """
-        checks if the image for this template exists
-        """
-        func = getattr(self, "get_%s_filename" % template.identifier, None)
-        if func is not None:
-            if os.path.isfile(func()):
-                return True
-        return False
-    
-    def create_template_file_cache(self, template):
-        """
-        creates the image for this template in the cache 
-        """
-        if self.cached_template_file_exists(template):
-            print "%s is already cached for %s" % (template, self)
-            return
-        if not os.path.isdir(self.cache_path):
-            os.makedirs(self.cache_path)
-        try:
-            im = filters.Image.open(self.file.path)
-        except IOError:
-            return
-        # Save the original format
-        im_format = im.format
-        #print im_format
-        # Apply the filters
-        print template
-        im = template.render(im)
-        im_filename = getattr(self, "get_%s_filename" % template.identifier)()
-        try:
-            if im_format != 'JPEG':
-                try:
-                    im.save(im_filename)
-                    return
-                except KeyError:
-                    pass
-            im.save(im_filename, 'JPEG')
-        except IOError, e:
-            print "error: ", e
-            if os.path.isfile(im_filename):
-                os.unlink(im_filename)
-            raise e
-    def remove_cache_template_file(self, template, remove_dirs=True):
-        if not self.cached_template_file_exists(template):
-            return
-        filename = getattr(self, "get_%s_filename" % template.identifier)()
-        if os.path.isfile(filename):
-            os.remove(filename)
-        if remove_dirs:
-            self.remove_cache_dirs()
-    def clear_cache(self):
-        cache = ImageManipulationTemplateCache()
-        for template in cache.templates.values():
-            self.remove_cache_template_file(template, remove_dirs=False)
-        self.remove_cache_dirs()
-    
-    def pre_cache(self):
-        cache = ImageManipulationTemplateCache()
-        for template in cache.templates.values():
-            if template.pre_cache:
-                self.create_template_file_cache(template)
-    def remove_cache_dirs(self):
-        try:
-            os.removedirs(self.cache_path)
-        except:
-            pass
-    def get_absolute_url(self):
-        # TODO: fix url do be more robust
-        return '%s%s' % (CATALOGUE_BASE_URL,self.file.name)
-    
     def _check_validity(self):
         if not self.name or not self.contact:
             return False
@@ -400,19 +235,10 @@ class Image(AbstractFile):
                 pass
         if self.date_taken is None:
             self.date_taken = datetime.now()
-        self.render()
-        if self._get_pk_val():
-            self.clear_cache()
         if not self.contact:
             self.contact = self.owner
         self.has_all_mandatory_data = self._check_validity()
         super(Image, self).save(*args, **kwargs)
-        self.pre_cache()
-    def delete(self):
-        assert self._get_pk_val() is not None, "%s object can't be deleted because its %s attribute is set to None." % (self._meta.object_name, self._meta.pk.attname)
-        self.clear_cache()
-        super(Image, self).delete()
-        #check that all mandatory data is set and save the result to has_all_mandatory_data
     def has_edit_permission(self, request):
         return self.has_generic_permission(request, 'edit')
     def has_read_permission(self, request):
@@ -453,13 +279,12 @@ class Image(AbstractFile):
     label = property(label)
     def __unicode__(self):
         return self.label
+
 # MPTT registration
-mptt_models = [Folder, Image]
-for mptt_model in mptt_models:
-    try:
-        mptt.register(mptt_model)
-    except mptt.AlreadyRegistered:
-        pass
+try:
+    mptt.register(Folder)
+except mptt.AlreadyRegistered:
+    pass
 
 
 class FolderPermissionManager(models.Manager):
@@ -646,127 +471,6 @@ class ImagePermission(models.Model):
     class Meta:
         verbose_name = _('Image Permission')
         verbose_name_plural = _('Image Permissions')
-        
-
-
-
-FILTER_CHOICES = []
-for filter in filters.filters_by_identifier.values():
-    FILTER_CHOICES.append( (filter.identifier, filter.name) )
-#print filters.filters
-#print FILTER_CHOICES
-
-class ImageManipulationProfile(models.Model):
-    name = models.CharField(max_length=255, null=True, blank=True)
-    description = models.TextField(null=True, blank=True)
-    
-    show_in_library = models.BooleanField(default=False)
-    
-    def render_to_file(self, image):
-        #prepare directories
-        cache_path = image.cache_path
-        if not os.path.isdir(cache_path):
-            os.makedirs(cache_path)
-        im = filters.Image.open(image.file.path)
-        # Save the original format
-        im_format = im.format
-        im = self.render(im)
-        im_filename = '%s%s' % (cache_path, image.file.name)
-        #print image.file.path
-        #print cache_path
-        #print im_filename
-        try:
-            if im_format != 'JPEG':
-                try:
-                    im.save(im_filename)
-                    return im
-                except KeyError:
-                    pass
-            im.save(im_filename, 'JPEG')
-        except IOError, e:
-            if os.path.isfile(im_filename):
-                os.unlink(im_filename)
-            raise e
-    def render(self, im):
-        for step in self.steps.order_by('order'):
-            im = step.render(im)
-        return im
-    def __unicode__(self):
-        steps = ', '.join( [step.name or '' for step in self.steps.all()] )
-        return u"%s (%s)" % (self.name, steps)
-        
-
-class ImageManipulationStep(models.Model):
-    template = models.ForeignKey(ImageManipulationProfile, related_name='steps')
-    filter_identifier = models.CharField(max_length=255, choices=FILTER_CHOICES)
-    name = models.CharField(max_length=255, null=True, blank=True)
-    description = models.TextField(null=True, blank=True)
-    data = models.TextField(null=True, blank=True)#PickledObjectField(default={})
-    order = models.IntegerField(default=0)
-    
-    def render(self, im):
-        FilterClass = filters.filters_by_identifier[self.filter_identifier]
-        filter_class_instance = FilterClass()
-        return filter_class_instance.render(im)
-    
-    class Meta:
-        ordering = ("order",)
-        unique_together = (("template","order"),)
-
-class ImageManipulationTemplate(models.Model):
-    identifier = models.CharField(max_length=255, unique=True)
-    name = models.CharField(max_length=255, null=True, blank=True)
-    description = models.TextField(null=True, blank=True)
-    
-    profile = models.ForeignKey(ImageManipulationProfile, related_name='templates')
-    
-    pre_cache = models.BooleanField(_('pre-cache?'), default=False, help_text=_('If selected this photo size will be pre-cached as photos are added.'))
-    
-    def render(self, im):
-        return self.profile.render(im)
-    
-    def clear_cache(self):
-        for cls in Image.__subclasses__():
-            for obj in cls.objects.all():
-                obj.remove_cache_template_file(self)
-                if self.pre_cache:
-                    obj.create_template_file_cache(self)
-        ImageManipulationTemplateCache().reset()
-    def save(self, *args, **kwargs):
-        super(ImageManipulationTemplate, self).save(*args, **kwargs)
-        ImageManipulationTemplateCache().reset()
-        self.clear_cache()
-        return super(ImageManipulationTemplate,self).save(*args,**kwargs)
-    def delete(self):
-        assert self._get_pk_val() is not None, "%s object can't be deleted because its %s attribute is set to None." % (self._meta.object_name, self._meta.pk.attname)
-        self.clear_cache()
-        super(ImageManipulationTemplate, self).delete()
-    def __unicode__(self):
-        return u"%s (%s)" % (self.name, self.identifier)
-
-class ImageManipulationTemplateCache(object):
-    __state = {"templates": {}}
-    def __init__(self):
-        self.__dict__ = self.__state
-        if not len(self.templates):
-            templates = ImageManipulationTemplate.objects.all()
-            for template in templates:
-                self.templates[template.identifier] = template
-
-    def reset(self):
-        self.templates = {}
-# Set up the accessor methods
-def add_methods(sender, instance, signal, *args, **kwargs):
-    """ Adds methods to access sized images (urls, paths)
-
-    after the Photo model's __init__ function completes,
-    this method calls "add_accessor_methods" on each instance.
-    """
-    if hasattr(instance, 'add_accessor_methods'):
-        instance.add_accessor_methods()
-
-# connect the add_accessor_methods function to the post_init signal
-post_init.connect(add_methods)
 
 
 class Clipboard(models.Model):

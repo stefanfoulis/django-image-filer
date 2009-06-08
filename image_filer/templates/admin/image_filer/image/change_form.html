@@ -17,7 +17,7 @@
 {% block sidebar %}
 <div id="content-related">
     <div id="navcontainer">
-    	<a href="{{ original.file.url }}"><img src="{{ original.get_admin_sidebar_thumbnail_url }}" alt="{{ original.label }}" /></a>
+    	<a href="{{ original.file.url }}"><img src="{{ original.file.extra_thumbnails.admin_sidebar_preview }}" alt="{{ original.label }}" /></a>
         <ul id="navlist">
             <li>original filename: {{ original.original_filename }}</li>
             {% ifequal form.data.is_shareholder 1 %}
