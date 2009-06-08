@@ -1,0 +1,7 @@
+
+syntax: regexp
+^example/virtualenv$
+syntax: glob
+*.pyc
+syntax: glob
+*~
