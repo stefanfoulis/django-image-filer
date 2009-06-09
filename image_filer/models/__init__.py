@@ -553,7 +553,7 @@ if 'cms' in settings.INSTALLED_APPS:
         def url(self):
             h = self.height or 128
             w = self.width or 128
-            tn = DjangoThumbnail(self.image.file, (h,w) )
+            tn = DjangoThumbnail(self.image.file, (w,h), opts=['crop','upscale'] )
             return tn
         def __unicode__(self):
             if self.image:
