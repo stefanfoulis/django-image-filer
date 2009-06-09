@@ -1,4 +1,4 @@
-{% load i18n %}
+{% load i18n thumbnail %}
 {% load adminmedia %}
 <div id="toolbartable">
         <table cellspacing="0">
@@ -36,9 +36,8 @@
 				    <!-- Filename/Dimensions -->
 				    <td>
 				    	<div><b>{% if is_popup %}<a class="insertlink" href="" onclick="opener.dismissRelatedImageLookupPopup(window, {{ file.id }}, '{{ file.file.extra_thumbnails.admin_tiny_icon|escapejs }}', '{{ file.label|escapejs }}'); return false;">{% else %}<a href="/admin/image_filer/image/{{ file.id }}/">{% endif %}{{ file.label }}</a></b></div>
-						<div><span class="tiny">{{ file.file.width }} x {{ file.file.height }} px</span></div>
+						<div><span class="tiny">{{ file.file.width }} x {{ file.file.height }} px ({{ file.file.size|filesize:"auto1000long" }})</span></div>
 						<div>owner: {{ file.owner }}</div>
-						{% if not file.is_original %}<div>clone</div>{% endif %}
 						{% if file.has_all_mandatory_data %}<div><img alt="0" src="/media/admin/img/admin/icon-yes.gif" /> has all mandatory metadata</div>{% else %}<div><img alt="1" src="/media/admin/img/admin/icon-no.gif"/> missing metadata!</div>{% endif %}
 					</td>
 					<td>{% if is_popup %}<a class="insertlink" href="" onclick="opener.dismissRelatedImageLookupPopup(window, {{ file.id }}, '{{ file.file.extra_thumbnails.admin_tiny_icon|escapejs }}', '{{ file.label|escapejs }}'); return false;">insert</a>{% else %}<a class="changelink" href="/admin/image_filer/image/{{ file.id }}">Change</a>{% endif %}</td>
