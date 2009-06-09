@@ -534,13 +534,27 @@ class FolderRoot(DummyFolder):
 
 if 'cms' in settings.INSTALLED_APPS:
     from cms.models import CMSPlugin
+    from sorl.thumbnail.main import DjangoThumbnail
     class ImagePublication(CMSPlugin):
         image = ImageFilerModelImageField(Image)
         alt_text = models.CharField(null=True, blank=True, max_length=255)
         caption = models.CharField(null=True, blank=True, max_length=255)
+        width = models.PositiveIntegerField(null=True, blank=True)
+        height = models.PositiveIntegerField(null=True, blank=True)
+        
+        #crop_ax = models.PositiveIntegerField(null=True, blank=True)
+        #crop_ay = models.PositiveIntegerField(null=True, blank=True)
+        #crop_bx = models.PositiveIntegerField(null=True, blank=True)
+        #crop_by = models.PositiveIntegerField(null=True, blank=True)
+        
         show_author = models.BooleanField(default=False)
         show_copyright = models.BooleanField(default=False)
         
+        def url(self):
+            h = self.height or 128
+            w = self.width or 128
+            tn = DjangoThumbnail(self.image.file, (h,w) )
+            return tn
         def __unicode__(self):
             if self.image:
                 return self.image.label
