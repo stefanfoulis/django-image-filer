@@ -15,5 +15,5 @@ class ImagePlugin(CMSPluginBase):
     def render(self, context, instance, placeholder):
         return {'image_publication':instance, 'placeholder':placeholder}
     def icon_src(self, instance):
-        return instance.image.get_admin_tiny_thumbnail_url()
+        return instance.image.file.extra_thumbnails['admin_tiny_icon']
 plugin_pool.register_plugin(ImagePlugin)

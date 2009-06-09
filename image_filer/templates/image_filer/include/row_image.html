@@ -4,7 +4,7 @@
 <tr class="{% cycle rowcolors %}">
     <!-- FileIcon -->
     <td>{% if file.has_all_mandatory_data %}<img alt="0" src="/media/admin/img/admin/icon-yes.gif"/>{% else %}<img alt="1" src="/media/admin/img/admin/icon-no.gif"/>{% endif %}</td>
-	<td>{% if file.get_admin_thumbnail_url %}<img src="{{ file.get_admin_thumbnail_url }}" alt="{{ file.default_alt_text }}" />{% endif %}</td>
+	<td>{% if file.file.extra_thumbnails.admin_directory_listing_icon %}<img src="{{ file.file.extra_thumbnails.admin_directory_listing_icon }}" alt="{{ file.default_alt_text }}" />{% endif %}</td>
     <!-- Filename/Dimensions -->
     <td><b><a href="/admin/image_filer/image/{{ file.id }}/">{{ file.label }}</a></b><br /><span class="tiny">{{ file.file.width }} x {{ file.file.height }} px</span></td>
 	<td>{{ file.owner }}</td>

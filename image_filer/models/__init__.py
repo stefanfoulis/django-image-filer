@@ -49,12 +49,6 @@ class AbstractFile(models.Model):
     at least define a foreign key to folder and a file field (or subclass thereof):
         path: return the full absolute path to the physical file (may be omited in special cases)
         file: return a file object
-    Additional attributes may be added to enhance the experience:
-        get_absolute_url(): link to the object in the front-end
-        get_absolute_admin_url(): link to the object in the admin interface
-        get_default_thumbnail_url(): the thumbnail to show in default listings
-        get_admin_thumbnail_url(): the thumbnail for admin listings
-        file_type: 
     """
     file_type = 'unknown'
     folder = models.ForeignKey("Folder", related_name='%(class)s_files', null=True, blank=True)
@@ -187,6 +181,7 @@ class Image(AbstractFile):
                         'admin_clipboard_icon': {'size': (32,32), 'options': ['crop','upscale']},
                         'admin_sidebar_preview': {'size': (210,210), 'options': ['crop',]},
                         'admin_directory_listing_icon': {'size': (48,48), 'options': ['crop','upscale']},
+                        'admin_tiny_icon': {'size': (32,32), 'options': ['crop','upscale']},
                     },
                     null=True, blank=True)
     _height_field = models.IntegerField(null=True, blank=True) 

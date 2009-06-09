@@ -5,3 +5,7 @@ syntax: glob
 *.pyc
 syntax: glob
 *~
+syntax: regexp
+^example/django_project/media/generated$
+syntax: regexp
+^example/django_project/media/catalogue$

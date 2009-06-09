@@ -3,17 +3,25 @@ PRE-ALPHA
 Requirements:
 - PIL
 - mptt
+- sorl.thumbnail
 - django 1.1 (trunk)
+- (south) not a requirement, but handy
 
 for cms integration:
 - django-cms-2.0
 
 Setup
 - add 'image_filer' to INSTALLED_APPS
-- add
-		(r'^admin/image_filer/', include('image_filer.urls')),
+- add (r'^admin/image_filer/', include('image_filer.urls')),
 	to your urls.py before url(r'^admin/(.*)', admin.site.root), 
 - make image_filer/media/image_filer available in MEDIA_ROOT
-- import the "default_admin_thumbnail_definitions.json" fixture or define the
-  definitions manually.
-  ./manage.py loaddata /path/to/image/filer/image_filer/fixtures/default_admin_thumbnail_definitions.json
+
+
+To use the example project virtualenv and pip can be used to setup a test environment:
+ - mkdir example/virtualenv
+ - virtualenv example/virtualenv/image_filer
+ - pip -E example/virtualenv/image_filer install -r requirements.pip
+ 	- now you will have a virtualenv with mptt, sorl, south and django installed
+ - symlink or checkout the other dependencies into the virtualenv (example/virtualenv/image_filer/lib/python2.5/site-packages/)
+ - source example/virtualenv/image_filer/bin/activate
+ 	- now the virtualenv is active... and syncdb/runserver can be run with ./manage.py

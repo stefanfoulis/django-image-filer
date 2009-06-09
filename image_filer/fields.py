@@ -29,7 +29,7 @@ class ImageFilerImageWidget(ForeignKeyRawIdWidget):
             attrs['class'] = 'vForeignKeyRawIdAdminField' # The JavaScript looks for this hook.
         output = []
         if obj:
-            output.append(u'<img id="%s" src="%s" alt="%s" /> ' % (css_id_thumbnail_img, obj.get_admin_thumbnail_url(), obj.label) )
+            output.append(u'<img id="%s" src="%s" alt="%s" /> ' % (css_id_thumbnail_img, obj.file.extra_thumbnails['admin_tiny_icon'], obj.label) )
             output.append(u'&nbsp;<strong id="%s">%s</strong>' % (css_id_description_txt, obj) )
         else:
             output.append(u'<img id="%s" src="" class="quiet" alt="no image selected">' % css_id_thumbnail_img)
