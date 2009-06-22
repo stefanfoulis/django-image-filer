@@ -10,9 +10,31 @@ from django.utils.translation import ngettext, ugettext_lazy
 from django.utils.encoding import force_unicode
 from django.conf import settings
 
-from django.contrib.admin import actions
+#from django.contrib.admin import actions
 
-admin.site.register([FolderPermission, ImagePermission])
+admin.site.register([FolderPermission,])
+
+
+class PrimitivePermissionAwareModelAdmin(admin.ModelAdmin):
+    def has_add_permission(self, request):
+        # we don't have a "add" permission... but all adding is handled
+        # by special methods that go around these permissions anyway
+        return False
+    def has_change_permission(self, request, obj=None):
+        if hasattr(obj, 'has_edit_permission'):
+            if obj.has_edit_permission(request):
+                #print "%s has edit permission for %s" % (request.user, obj)
+                return True
+            else:
+                #print "%s has NO edit permission for %s" % (request.user, obj)
+                return False
+        else:
+            return True
+        
+    def has_delete_permission(self, request, obj=None):
+        # we don't have a specific delete permission... so we use change
+        return self.has_change_permission(request, obj)
+
 
 class Directory(Folder):
     """
@@ -24,12 +46,18 @@ class Directory(Folder):
         verbose_name_plural = "Directory Listing"
 
 class DirectoryAdmin(admin.ModelAdmin):
-    pass
+    def has_add_permission(self, request):
+        return False
+    def has_change_permission(self, request, obj=None):
+        opts = self.opts
+        return request.user.has_perm(opts.app_label + '.' + 'can_use_directory_listing')
+    def has_delete_permission(self, request, obj=None):
+        return False
 admin.site.register([Directory], DirectoryAdmin)
 
 
-class ImageAdmin(admin.ModelAdmin):
-    list_display = ('label','admin_thumbnail', 'has_all_mandatory_data')
+class ImageAdmin(PrimitivePermissionAwareModelAdmin):
+    list_display = ('label',)
     list_per_page = 10
     search_fields = ['name', 'original_filename','default_alt_text','default_caption','usage_restriction_notes','notes', 'author']
     raw_id_fields = ('contact', 'owner',)
@@ -83,6 +111,35 @@ class ImageAdmin(admin.ModelAdmin):
         extra_context = {'show_delete': True}
         context.update(extra_context)
         return super(ImageAdmin, self).render_change_form(request=request, context=context, add=False, change=False, form_url=form_url, obj=obj)
+    
+    def delete_view(self, request, object_id, extra_context=None):
+        '''
+        Overrides the default to enable redirecting to the directory view after
+        deletion of a image.
+        
+        we need to fetch the object and find out who the parent is
+        before super, because super will delete the object and make it impossible
+        to find out the parent folder to redirect to.
+        '''
+        parent_folder = None
+        try:
+            obj = self.queryset(request).get(pk=unquote(object_id))
+            parent_folder = obj.folder
+        except self.model.DoesNotExist:
+            obj = None
+        
+        r = super(ImageAdmin, self).delete_view(request=request, object_id=object_id, extra_context=extra_context)
+        
+        url = r.get("Location", None)
+        if url in ["../../../../","../../"]:
+            if parent_folder:
+                url = reverse('image_filer-directory_listing', 
+                                  kwargs={'folder_id': parent_folder.id})
+            else:
+                url = reverse('image_filer-directory_listing-unfiled_images')
+            return HttpResponseRedirect(url)
+        return r
+
 admin.site.register(Image, ImageAdmin)
 
 class AddFolderPopupForm(forms.ModelForm):
@@ -92,18 +149,15 @@ class AddFolderPopupForm(forms.ModelForm):
         fields = ('name',)
         
 
-class FolderAdmin(admin.ModelAdmin):
-    list_display = ('icon_img', 'name',)
+class FolderAdmin(PrimitivePermissionAwareModelAdmin):
+    list_display = ('name',)
     exclude = ('parent',)
-    #list_display_links = ('icon_img', 'name', )
-    list_editable =('name', )
     list_per_page = 20
     list_filter = ('owner',)
-    verbose_name = "DEBUG Folder Admin"
     search_fields = ['name', 'image_files__name' ]
-    hide_in_appindex = True
     raw_id_fields = ('owner',)
     save_as=True # see ImageAdmin
+    #hide_in_app_index = True # custom var handled in app_index.html of image_filer
     
     def get_form(self, request, obj=None, **kwargs):
         """
@@ -134,6 +188,8 @@ class FolderAdmin(admin.ModelAdmin):
         '''
         r = super(FolderAdmin, self).response_change(request, obj)
         if r['Location']:
+            print r['Location']
+            print obj
             # it was a successful save
             if r['Location'] in ['../']:
                 if obj.parent:
@@ -150,10 +206,45 @@ class FolderAdmin(admin.ModelAdmin):
         extra_context = {'show_delete': True}
         context.update(extra_context)
         return super(FolderAdmin, self).render_change_form(request=request, context=context, add=False, change=False, form_url=form_url, obj=obj)
-
+    
+    def delete_view(self, request, object_id, extra_context=None):
+        '''
+        Overrides the default to enable redirecting to the directory view after
+        deletion of a folder.
+        
+        we need to fetch the object and find out who the parent is
+        before super, because super will delete the object and make it impossible
+        to find out the parent folder to redirect to.
+        '''
+        parent_folder = None
+        try:
+            obj = self.queryset(request).get(pk=unquote(object_id))
+            parent_folder = obj.parent
+        except self.model.DoesNotExist:
+            obj = None
+        
+        r = super(FolderAdmin, self).delete_view(request=request, object_id=object_id, extra_context=extra_context)
+        url = r.get("Location", None)
+        if url in ["../../../../","../../"]:
+            if parent_folder:
+                url = reverse('image_filer-directory_listing', 
+                                  kwargs={'folder_id': parent_folder.id})
+            else:
+                url = reverse('image_filer-directory_listing-root')
+            return HttpResponseRedirect(url)
+        return r
     def icon_img(self,xs):
         return mark_safe('<img src="/media/img/icons/plainfolder_32x32.png" alt="Folder Icon" />')
     icon_img.allow_tags = True
+    '''
+    def queryset(self, request):
+        qs = super(FolderAdmin,self).queryset(request)
+        if request.user.is_superuser:
+            return qs
+        else:
+            return qs.filter(owner=request.user)
+    '''     
+    
 admin.site.register(Folder, FolderAdmin)
 
 class ClipboardItemInline(admin.TabularInline):

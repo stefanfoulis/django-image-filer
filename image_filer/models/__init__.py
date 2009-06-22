@@ -22,7 +22,6 @@ from django.contrib.auth import models as auth_models
 
 from django.conf import settings
 
-
 '''
 # remove the uuid stuff for now
 try:
@@ -169,6 +168,13 @@ class Folder(models.Model):
     class Meta:
         unique_together = (('parent','name'),)
         ordering = ('name',)
+        permissions = (("can_use_directory_listing", "Can use directory listing"),)
+
+# MPTT registration
+try:
+    mptt.register(Folder)
+except mptt.AlreadyRegistered:
+    pass
 
 class Image(AbstractFile):
     file_type = 'image'
@@ -252,20 +258,11 @@ class Image(AbstractFile):
             return True
         elif user == self.owner:
             return True
+        elif self.folder:
+            return self.folder.has_generic_permission(request, type)
         else:
-            att_name = "permission_%s_cache" % type
-            if not hasattr(self, "permission_user_cache") or \
-               not hasattr(self, att_name) or \
-               request.user.pk != self.permission_user_cache.pk:
-                func = getattr(ImagePermission.objects, "get_%s_id_list" % type)
-                permission = func(user)
-                self.permission_user_cache = request.user
-                if permission == "All" or self.id in permission:
-                    setattr(self, att_name, True)
-                    self.permission_edit_cache = True
-                else:
-                    setattr(self, att_name, False)
-            return getattr(self, att_name)
+            return False
+                
     def label(self):
         if self.name in ['',None]:
             return self.original_filename or 'unnamed file'
@@ -274,12 +271,6 @@ class Image(AbstractFile):
     label = property(label)
     def __unicode__(self):
         return self.label
-
-# MPTT registration
-try:
-    mptt.register(Folder)
-except mptt.AlreadyRegistered:
-    pass
 
 
 class FolderPermissionManager(models.Manager):
@@ -355,7 +346,7 @@ class FolderPermission(models.Model):
     everybody = models.BooleanField(_("everybody"), default=False)
     
     can_edit = models.BooleanField(_("can edit"), default=True)
-    can_read = models.BooleanField(_("can read"), default=False)
+    can_read = models.BooleanField(_("can read"), default=True)
     can_add_children = models.BooleanField(_("can add children"), default=True)
     
     objects = FolderPermissionManager()
@@ -375,97 +366,15 @@ class FolderPermission(models.Model):
             if self.user:
                 ug.append(u"User: %s" % self.user)
         usergroup = " ".join(ug)
-        
-        return u"%s (%s)" % (usergroup, unicode(self.TYPES[self.type][1]))
+        perms = []
+        for s in ['can_edit', 'can_read', 'can_add_children']:
+            if getattr(self, s):
+                perms.append(s)
+        perms = ', '.join(perms)
+        return u"Folder: '%s'->%s [%s] [%s]" % (name, unicode(self.TYPES[self.type][1]), perms, usergroup)
     class Meta:
         verbose_name = _('Folder Permission')
         verbose_name_plural = _('Folder Permissions')
-    
-    
-
-class ImagePermissionManager(models.Manager):
-    def get_read_id_list(self, user):
-        """
-        Give a list of a Images where the user has read rights or the string
-        "All" if the user has all rights.
-        """
-        return self.__get_id_list(user, "can_read")
-    def get_edit_id_list(self, user):
-        return self.__get_id_list(user, "can_edit")
-    def get_add_children_id_list(self, user):
-        return self.__get_id_list(user, "can_add_children")
-    def __get_id_list(self, user, attr):
-        if user.is_superuser:
-            return 'All'
-        allow_list = []
-        deny_list = []
-        group_ids = user.groups.all().values_list('id', flat=True)
-        q = Q(user=user)|Q(group__in=group_ids)|Q(everybody=True)
-        perms = self.filter(q).order_by('image__tree_id', 'image__level', 
-                                        'image__lft')
-        for perm in perms:
-            if perm.type == ImagePermission.ALL:
-                if getattr(perm, attr):
-                    allow_list = list(Image.objects.all().values_list('id', flat=True))
-                else:
-                    return []
-            if getattr(perm, attr):
-                if perm.image.id not in allow_list:
-                    allow_list.append(perm.image.id)
-                if perm.image.id in deny_list:
-                    deny_list.remove(perm.image.id)
-            else:
-                if perm.image.id not in deny_list:
-                    deny_list.append(perm.image.id)
-                if perm.image.id in allow_list:
-                    allow_list.remove(perm.image.id)
-            if perm.type == ImagePermission.CHILDREN:
-                for id in perm.image.get_descendants().values_list('id', flat=True):
-                    if getattr(perm, attr):
-                        if id not in allow_list:
-                            allow_list.append(id)
-                        if id in deny_list:
-                            deny_list.remove(id)
-                    else:
-                        if id not in deny_list:
-                            deny_list.append(id)
-                        if id in allow_list:
-                            allow_list.remove(id)
-        return allow_list
-
-class ImagePermission(models.Model):
-    ALL = 0
-    THIS = 1
-    CHILDREN = 2
-    
-    TYPES = (
-        (ALL, _('all items') ),
-        (THIS, _('this item only') ),
-        (CHILDREN, _('this item and all children') ),
-    )
-    '''
-    content_type = models.ForeignKey(ContentType, null=True, blank=True)
-    object_id = models.PositiveIntegerField()
-    content_object = generic.GenericForeignKey('content_type', 'object_id')
-    '''
-    image = models.ForeignKey(Image, null=True, blank=True)
-    
-    type = models.SmallIntegerField(_('type'), choices=TYPES, default=0)
-    user = models.ForeignKey(auth_models.User, verbose_name=_("user"), blank=True, null=True)
-    group = models.ForeignKey(auth_models.Group, verbose_name=_("group"), blank=True, null=True)
-    everybody = models.BooleanField(_("everybody"), default=False)
-    
-    can_edit = models.BooleanField(_("can edit"), default=True)
-    can_read = models.BooleanField(_("can read"), default=False)
-    can_add_children = models.BooleanField(_("can add children"), default=True)
-    
-    objects = ImagePermissionManager()
-    
-    def __unicode__(self):
-        return u"%s: %s" % (self.user or self.group, unicode(self.TYPES[self.type][1]))
-    class Meta:
-        verbose_name = _('Image Permission')
-        verbose_name_plural = _('Image Permissions')
 
 
 class Clipboard(models.Model):
@@ -494,14 +403,17 @@ class ClipboardItem(models.Model):
     clipboard = models.ForeignKey(Clipboard)
     is_checked = models.BooleanField(default=True)
 
-
 class DummyFolder(object):
     name = "Dummy Folder"
     is_root = True
     can_have_subfolders = False
     parent = None
-    children = Folder.objects.filter(id__in=[0]) # empty queryset
-    files = Image.objects.filter(id__in=[0]) # empty queryset
+    @property
+    def children(self):
+        return Folder.objects.filter(id__in=[0]) # empty queryset
+    @property
+    def files(self):
+        return Image.objects.filter(id__in=[0]) # empty queryset
     parent_url = None
     @property
     def image_files(self):
@@ -517,26 +429,24 @@ class UnfiledImages(DummyFolder):
 class ImagesWithMissingData(DummyFolder):
     name = "Unfiled Files"
     is_root = True
-    def _files(self):
+    @property
+    def files(self):
         return Image.objects.filter(has_all_mandatory_data=False)
-    files = property(_files)
-    
+
 class FolderRoot(DummyFolder):
     name = 'Root'
     is_root = True
     can_have_subfolders = True
-    
-    def _children(self):
+    @property
+    def children(self):
         return Folder.objects.filter(parent__isnull=True)
-    children = property(_children)
     parent_url = None
-
 
 if 'cms' in settings.INSTALLED_APPS:
     from cms.models import CMSPlugin
     from sorl.thumbnail.main import DjangoThumbnail
     class ImagePublication(CMSPlugin):
-        image = ImageFilerModelImageField(Image)
+        image = ImageFilerModelImageField()
         alt_text = models.CharField(null=True, blank=True, max_length=255)
         caption = models.CharField(null=True, blank=True, max_length=255)
         width = models.PositiveIntegerField(null=True, blank=True)
@@ -546,6 +456,7 @@ if 'cms' in settings.INSTALLED_APPS:
         #crop_ay = models.PositiveIntegerField(null=True, blank=True)
         #crop_bx = models.PositiveIntegerField(null=True, blank=True)
         #crop_by = models.PositiveIntegerField(null=True, blank=True)
+        
         
         show_author = models.BooleanField(default=False)
         show_copyright = models.BooleanField(default=False)
@@ -561,4 +472,7 @@ if 'cms' in settings.INSTALLED_APPS:
             else:
                 return u"Image Publication %s" % self.caption
             return ''
+    if 'reversion' in settings.INSTALLED_APPS:       
+        import reversion 
+        reversion.register(ImagePublication, follow=["cmsplugin_ptr"])
         

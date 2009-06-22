@@ -53,6 +53,9 @@ class ImageFilerImageWidget(ForeignKeyRawIdWidget):
         except:
             obj = None
         return obj
+    
+    class Media:
+        js = ('image_filer/js/image_widget_thumbnail.js',)
 
 class ImageFilerImageFormField(forms.ModelChoiceField):
     widget = ImageFilerImageWidget 
@@ -66,6 +69,9 @@ class ImageFilerImageFormField(forms.ModelChoiceField):
         forms.Field.__init__(self, widget=self.widget(rel), *args, **kwargs)
 
 class ImageFilerModelImageField(models.ForeignKey):
+    def __init__(self, **kwargs):
+        from image_filer.models import Image
+        return super(ImageFilerModelImageField,self).__init__(Image, **kwargs)
     def formfield(self, **kwargs):
         # This is a fairly standard way to set up some defaults
         # while letting the caller override them.

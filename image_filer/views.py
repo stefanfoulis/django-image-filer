@@ -2,14 +2,16 @@ import os
 from django.shortcuts import render_to_response
 from django.contrib.auth.decorators import login_required
 from django.template import RequestContext
-from django.http import HttpResponseRedirect, HttpResponse, HttpResponseForbidden,HttpResponseBadRequest
+from django.http import HttpResponseRedirect, HttpResponse, HttpResponseForbidden, HttpResponseBadRequest
 from django.contrib.sessions.models import Session
 from django.conf import settings
 from django.db.models import Q
+from django.core.exceptions import PermissionDenied
 
 from models import Folder, Image, Clipboard, ClipboardItem
 from models import tools
 from models import FolderRoot, UnfiledImages, ImagesWithMissingData
+from django.contrib.auth.models import User
 
 from django import forms
 
@@ -90,14 +92,20 @@ def directory_listing(request, folder_id=None, viewtype=None):
         f.perms = _userperms(f, request)
         if hasattr(f, 'has_read_permission'):
             if f.has_read_permission(request):
+                print "%s has read permission for %s" % (request.user, f)
                 folder_children.append(f)
+            else:
+                print "%s has NO read permission for %s" % (request.user, f)
         else:
             folder_children.append(f) 
     for f in image_qs:
         f.perms = _userperms(f, request)
         if hasattr(f, 'has_read_permission'):
             if f.has_read_permission(request):
+                print "%s has read permission for %s" % (request.user, f)
                 folder_files.append(f)
+            else:
+                print "%s has NO read permission for %s" % (request.user, f)
         else:
             folder_files.append(f)
     try:
@@ -148,14 +156,15 @@ def make_folder(request, folder_id=None):
         folder = Folder.objects.get(id=folder_id)
     else:
         folder = None
+        
     if request.user.is_superuser:
         pass
     elif folder == None:
         # regular users may not add root folders
-        return HttpResponseForbidden()
+        raise PermissionDenied
     elif not folder.has_add_children_permission(request):
         # the user does not have the permission to add subfolders
-        return HttpResponseForbidden()
+        raise PermissionDenied
     
     if request.method == 'POST':
         new_folder_form = NewFolderForm(request.POST)
@@ -164,10 +173,10 @@ def make_folder(request, folder_id=None):
             new_folder.parent = folder
             new_folder.owner = request.user
             new_folder.save()
-            print u"Saving folder %s as child of %s" % (new_folder, folder)
+            #print u"Saving folder %s as child of %s" % (new_folder, folder)
             return HttpResponse('<script type="text/javascript">opener.dismissPopupAndReload(window);</script>')
     else:
-        print u"New Folder GET, parent %s" % folder
+        #print u"New Folder GET, parent %s" % folder
         new_folder_form = NewFolderForm()
     return render_to_response('image_filer/include/new_folder_form.html', {
             'new_folder_form': new_folder_form,
@@ -202,22 +211,12 @@ def ajax_upload(request, folder_id=None):
     # this sucks... session key in get!
     session_key = request.GET.get('jsessionid')
     request.session = engine.SessionStore(session_key)
-    #print request.session.session_key, request.user
-    if folder_id:
-        folder = Folder.objects.get(id=folder_id)
-    else:
-        folder = None
-    
-    # check permissions
-    if request.user.is_superuser:
-        pass
-    elif folder == None:
-        # regular users may not add root folders
-        return HttpResponseForbidden()
-    elif not folder.has_add_children_permission(request):
-        # the user does not have the permission to images to this folder
-        return HttpResponseForbidden()
-    
+    request.user = User.objects.get(id=request.session['_auth_user_id'])
+    #print request.session['_auth_user_id']
+    #print session_key
+    #print engine
+    #print request.user
+    #print request.session
     # upload and save the file
     if not request.method == 'POST':
         return HttpResponse("must be POST")
@@ -229,32 +228,35 @@ def ajax_upload(request, folder_id=None):
     files = generic_handle_file(file, original_filename)
     for ifile, iname in files:
         iext = os.path.splitext(iname)[1].lower()
-        print "extension: ", iext
+        #print "extension: ", iext
         if iext in ['.jpg','.jpeg','.png','.gif']:
             imageform = UploadFileForm({'original_filename':iname,'owner': request.user.pk}, {'file':ifile})
             if imageform.is_valid():
-                print 'imageform is valid'
+                #print 'imageform is valid'
                 try:
                     image = imageform.save(commit=False)
                     image.save()
                 except Exception, e:
                     print e
-                print "save %s" % image
+                #print "save %s" % image
                 bi = ClipboardItem(clipboard=clipboard, file=image)
                 bi.save()
-                print image
+                #sprint image
             else:
                 pass#print imageform.errors
+            
     return HttpResponse("ok")
 
 @login_required
 def paste_clipboard_to_folder(request):
     if request.method=='POST':
         folder = Folder.objects.get( id=request.POST.get('folder_id') )
-        print folder
         clipboard = Clipboard.objects.get( id=request.POST.get('clipboard_id') )
-        tools.move_files_from_clipboard_to_folder(clipboard, folder)
-        tools.discard_clipboard(clipboard)
+        if folder.has_add_children_permission(request):
+            tools.move_files_from_clipboard_to_folder(clipboard, folder)
+            tools.discard_clipboard(clipboard)
+        else:
+            raise PermissionDenied
     return HttpResponseRedirect( '%s%s' % (request.POST.get('redirect_to', ''), popup_param(request) ) )
 
 @login_required
@@ -283,12 +285,16 @@ def delete_clipboard(request):
 
 @login_required
 def move_file_to_clipboard(request):
+    print "move file"
     if request.method=='POST':
         file_id = request.POST.get("file_id", None)
         clipboard = tools.get_user_clipboard(request.user)
         if file_id:
             file = Image.objects.get(id=file_id)
-            tools.move_file_to_clipboard([file], clipboard)
+            if file.has_edit_permission(request):
+                tools.move_file_to_clipboard([file], clipboard)
+            else:
+                raise PermissionDenied
     return HttpResponseRedirect( '%s%s' % (request.POST.get('redirect_to', ''), popup_param(request) ) )
 
 @login_required
