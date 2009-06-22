@@ -8,8 +8,7 @@ admin.autodiscover()
 
 # hack to add the media of the image_filer app
 IMAGE_FILER_MEDIA_DIR = os.path.abspath( os.path.join(settings.PROJECT_DIR, '../../image_filer/media/image_filer') )
-CMS_MEDIA_DIR = os.path.abspath( os.path.join(settings.PROJECT_DIR, '../virtualenv/image_filer/src/django-cms/cms/media/cms') )
-
+CMS_MEDIA_DIR = os.path.abspath( os.path.join(settings.PROJECT_DIR, '../image_filer_example/src/django-cms-2.0/cms/media/cms') )
 
 urlpatterns = patterns('',
     (r'^media/image_filer/(?P<path>.*)$', 'django.views.static.serve', {'document_root': IMAGE_FILER_MEDIA_DIR, 'show_indexes': True}),
