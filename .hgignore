@@ -1,6 +1,3 @@
-
-syntax: regexp
-^example/virtualenv$
 syntax: glob
 *.pyc
 syntax: glob
@@ -9,3 +6,5 @@ syntax: regexp
 ^example/django_project/media/generated$
 syntax: regexp
 ^example/django_project/media/catalogue$
+syntax: regexp
+^example/image_filer_example$
