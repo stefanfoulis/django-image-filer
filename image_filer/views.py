@@ -219,7 +219,7 @@ def ajax_upload(request, folder_id=None):
     #print request.session
     # upload and save the file
     if not request.method == 'POST':
-        pass#return HttpResponse("must be POST")
+        return HttpResponse("must be POST")
     original_filename = request.POST.get('Filename')
     file = request.FILES.get('Filedata')
     #print request.FILES
