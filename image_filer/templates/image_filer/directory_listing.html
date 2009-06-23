@@ -16,7 +16,24 @@ function dismissPopupAndReload(win) {
 	table thead th.thumbHeader {
 		width: 52px;
 	}
+	#fileUploadFakeLink {
+		position: relative;
+		
+	}
+	#fileInputUploaderContainer {
+		position: absolute;
+		top:0;
+		left: -8px;
+	}
+	#fileInputUploader {
+	}
+	
 </style>
+{# upload stuff #}
+<script type="text/javascript" src="/media/image_filer/js/jquery.uploadify-v1.6.2/jquery-1.3.2.min.js"></script>
+<script type="text/javascript" src="/media/image_filer/js/jquery.uploadify-v1.6.2/jquery.uploadify.src.js"></script>
+<script type="text/javascript" src="/media/image_filer/js/jquery.cookie.js"></script>
+
 {% endblock %}
 
 {% block coltype %}colMS{% endblock %}
@@ -50,7 +67,8 @@ function dismissPopupAndReload(win) {
 <div id="content-main">
 	<ul class="object-tools">
 		{% if folder.can_have_subfolders %}<li><a id="id_new_folder" href="{% url image_filer-directory_listing-make_root_folder %}?parent_id={{ folder.id }}" class="addlink" onclick="return showAddAnotherPopup(this);">{% trans "New Folder" %}</a>{% endif %}</li>
-		<li><a id="id_upload_files" href="{% url image_filer-upload %}" class="addlink" onclick="return showAddAnotherPopup(this);">{% trans "Upload" %}</a></li>
+		{% comment %}<li><a id="id_upload_files" href="{% url image_filer-upload %}" class="addlink" onclick="return showAddAnotherPopup(this);">{% trans "Upload" %}</a></li>{% endcomment %}
+		<li>{% include "image_filer/include/upload_button.html" %}</li>
 		<li><a id="id_directory_root" href="{% url image_filer-directory_listing-root %}{% if is_popup %}?_popup=1{% endif %}" class="link">Root</a></li>
 		<li><a id="id_missing_data_images" href="{% url image_filer-directory_listing-images_with_missing_data %}{% if is_popup %}?_popup=1{% endif %}" class="link">Incomplete Images</a></li>
 		<li><a id="id_unfiled_images" href="{% url image_filer-directory_listing-unfiled_images %}{% if is_popup %}?_popup=1{% endif %}" class="link">Unfiled Images</a></li>
