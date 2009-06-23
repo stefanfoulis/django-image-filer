@@ -25,3 +25,8 @@ To use the example project virtualenv and pip can be used to setup a test enviro
  - symlink or checkout the other dependencies into the virtualenv (example/virtualenv/image_filer/lib/python2.5/site-packages/)
  - source example/virtualenv/image_filer/bin/activate
  	- now the virtualenv is active... and syncdb/runserver can be run with ./manage.py
+
+
+
+History:
+ - added some nice jQuery stuff for file upload
