@@ -1,24 +1,17 @@
 {% load thumbnail %}
 {% for clipboard in user.clipboards.all %}
-<table style="width: 100%; border: 1px solid #DDDDDD;">
+<table style="width: 100%; border: 1px solid #DDDDDD;" class="clipboard">
 	<thead>
 		<th colspan=3>Clipboard</th>
 	</thead>
-	<tbody>{% if clipboard.files.count %}{% for item in clipboard.files.all %}
-		<tr>
-			<td><img src="{{ item.file.extra_thumbnails.admin_clipboard_icon }}" alt="{{ item.default_alt_text }}" /></td>
-			<td>{{ item.label }}</td>
-			<td></td>
-		</tr>
-		{% endfor %}
+	<tbody id="fileInputQueue" class="fileUploadQueue">{% if clipboard.files.count %}{% with clipboard.files.all as items %}
+		{% include "image_filer/include/clipboard_item_rows.html" %}
+		{% endwith %}
 	{% else %}
-		<tr>
+		<tr class="noItemsRow">
 			<td colspan=3 style="color: gray;text-align: center; height: 48px; vertical-align: middle;">the clipboard is empty</td>
 		</tr>
 	{% endif %}
-		<tr>
-			<td colspan=4><div id="fileInputQueue" class="fileUploadQueue"></div></td>
-		</tr>
 	</tbody>
 	<tfoot>
 		<tr>

@@ -219,15 +219,19 @@ def ajax_upload(request, folder_id=None):
     #print request.session
     # upload and save the file
     if not request.method == 'POST':
-        return HttpResponse("must be POST")
+        pass#return HttpResponse("must be POST")
     original_filename = request.POST.get('Filename')
     file = request.FILES.get('Filedata')
     #print request.FILES
     #print original_filename, file
     clipboard, was_clipboard_created = Clipboard.objects.get_or_create(user=request.user)
     files = generic_handle_file(file, original_filename)
+    file_items = []
     for ifile, iname in files:
-        iext = os.path.splitext(iname)[1].lower()
+        try:
+            iext = os.path.splitext(iname)[1].lower()
+        except:
+            iext = ''
         #print "extension: ", iext
         if iext in ['.jpg','.jpeg','.png','.gif']:
             imageform = UploadFileForm({'original_filename':iname,'owner': request.user.pk}, {'file':ifile})
@@ -236,6 +240,7 @@ def ajax_upload(request, folder_id=None):
                 try:
                     image = imageform.save(commit=False)
                     image.save()
+                    file_items.append(image)
                 except Exception, e:
                     print e
                 #print "save %s" % image
@@ -245,7 +250,7 @@ def ajax_upload(request, folder_id=None):
             else:
                 pass#print imageform.errors
             
-    return HttpResponse("ok")
+    return render_to_response('image_filer/include/clipboard_item_rows.html', {'items': file_items }, context_instance=RequestContext(request))
 
 @login_required
 def paste_clipboard_to_folder(request):

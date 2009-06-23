@@ -9,7 +9,10 @@ def generic_handle_file(file, original_filename):
     """
     #print "entering generic_handle_file(file=%s, original_filename=%s)" % (file, original_filename)
     files = []
-    filetype = os.path.splitext(original_filename)[1].lower()
+    try:
+        filetype = os.path.splitext(original_filename)[1].lower()
+    except:
+        filetype = ''
     #print filetype
     if filetype=='.zip':
         unpacked_files = unzip(file)

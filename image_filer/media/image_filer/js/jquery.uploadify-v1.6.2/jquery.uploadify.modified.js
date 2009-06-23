@@ -125,7 +125,7 @@ if(jQuery)(
 						} else {
 							$(this).after(flashElement);
 						}
-						$("#" + $(this).attr('id') + "Uploader").after('<div id="' + $(this).attr('id') + 'Queue" class="fileUploadQueue"></div>');
+						//$("#" + $(this).attr('id') + "Uploader").after('<div id="' + $(this).attr('id') + 'Queue" class="fileUploadQueue"></div>');
 					}
 					$(this).bind("rfuSelect", {'action': settings.onSelect}, function(event, queueID, fileObj) {
 						if (event.data.action(event, queueID, fileObj) !== false) {
@@ -146,15 +146,19 @@ if(jQuery)(
 							} else {
 								fileName = fileObj.name;
 							}
-							$('#' + $(this).attr('id') + 'Queue').append('<div id="' + $(this).attr('id') + queueID + '" class="fileUploadQueueItem">\
-									<div class="cancel">\
+							$('#' + $(this).attr('id') + 'Queue' + ' .noItemsRow').hide();
+							$('#' + $(this).attr('id') + 'Queue').append('<tr id="' + $(this).attr('id') + queueID + '" class="fileUploadQueueItem">\
+									<td><div class="loadingThumb" /></td>\
+									<td>\
+										<div><span class="fileName">' + fileName + ' (' + byteSize + suffix + ')</span><span class="percentage">&nbsp;</span><span class="serveraction">&nbsp;</span></div>\
+										<div class="fileUploadProgress" style="width: 100%;">\
+											<div id="' + $(this).attr('id') + queueID + 'ProgressBar" class="fileUploadProgressBar" style="width: 1px; height: 3px;"></div>\
+										</div>\
+									</td>\
+									<td>\
 										<a href="javascript:$(\'#' + $(this).attr('id') + '\').fileUploadCancel(\'' + queueID + '\')"><img src="' + settings.cancelImg + '" border="0" /></a>\
-									</div>\
-									<span class="fileName">' + fileName + ' (' + byteSize + suffix + ')</span><span class="percentage">&nbsp;</span>\
-									<div class="fileUploadProgress" style="width: 100%;">\
-										<div id="' + $(this).attr('id') + queueID + 'ProgressBar" class="fileUploadProgressBar" style="width: 1px; height: 3px;"></div>\
-									</div>\
-								</div>');
+									</td>\
+								');//.show(250);
 						}
 					});
 					if (typeof(settings.onSelectOnce) == 'function') {
@@ -208,12 +212,21 @@ if(jQuery)(
 							if (event.data.toDisplay == 'speed') displayData = ' - ' + data.speed + 'KB/s';
 							if (event.data.toDisplay == null) displayData = ' ';
 							$("#" + $(this).attr('id') + queueID + " .percentage").text(displayData);
+							if (parseInt(data.percentage)==100){// && fileObj.type.toLowerCase()=='.zip') {
+								if ($.inArray('zip',fileObj.name.toLowerCase().split('.')) == 1) {
+									$("#" + $(this).attr('id') + queueID + " .serveraction").text(' unpacking zip...');
+									$("#" + $(this).attr('id') + queueID).effect("highlight",{},4000).effect("highlight",{},4000).effect("highlight",{},4000).effect("highlight",{},4000).effect("highlight",{},4000).effect("highlight",{},4000).effect("highlight",{},4000).effect("highlight",{},4000).effect("highlight",{},4000);
+								}
+							}
 						}
+						
+						
 					});
 					$(this).bind("rfuComplete", {'action': settings.onComplete}, function(event, queueID, fileObj, response, data) {
 						if (event.data.action(event, queueID, fileObj, unescape(response), data) !== false) {
-							$("#" + $(this).attr('id') + queueID).fadeOut(250, function() { $("#" + $(this).attr('id') + queueID).remove()});
-							$("#" + $(this).attr('id') + queueID + " .percentage").text(' - Completed');
+							var responsetext = unescape(response);
+							$("#" + $(this).attr('id') + queueID).before(responsetext).remove();
+							//$("#" + $(this).attr('id') + queueID).before(responsetext);
 						}
 					});
 					if (typeof(settings.onAllComplete) == 'function') {

@@ -12,9 +12,9 @@
 <script type="text/javascript">
 $(document).ready(function() {
 	$('#fileInput').fileUpload ({
-		'uploader'  : '/media/image_filer/js/jquery.uploadify-v1.6.2/uploader.swf',
+		'uploader'  : '{{ MEDIA_URL }}image_filer/js/jquery.uploadify-v1.6.2/uploader.swf',
 		'script'    : '{% url image_filer-ajax_upload %}',
-		'cancelImg' : '/media/image_filer/js/jquery.uploadify-v1.6.2/cancel.png',
+		'cancelImg' : '{{ MEDIA_URL }}image_filer/img/close.gif',
 		'hideButton': true,
 		'auto'      : true,
 		'folder'    : '',
@@ -23,42 +23,11 @@ $(document).ready(function() {
 		'width'		: '100',
 		'height'	: 16,
 		'wmode'		: 'transparent',
-		'simUploadLimit': 1,
+		'simUploadLimit': 3,
 		'scriptData':{'stuff':'there','jsessionid':$.cookie('sessionid')},
 		'onAllComplete': function() {
 				setTimeout(closeTheWindow(),1000);
-			},
-		'onSelect'	: function(event, queueID, fileObj) {
-			console.log(queueID);
-			if (event.data.action(event, queueID, fileObj) !== false) {
-				var byteSize = Math.round(fileObj.size / 1024 * 100) * .01;
-				var suffix = 'KB';
-				if (byteSize > 1000) {
-					byteSize = Math.round(byteSize *.001 * 100) * .01;
-					suffix = 'MB';
-				}
-				var sizeParts = byteSize.toString().split('.');
-				if (sizeParts.length > 1) {
-					byteSize = sizeParts[0] + '.' + sizeParts[1].substr(0,2);
-				} else {
-					byteSize = sizeParts[0];
-				}
-				if (fileObj.name.length > 20) {
-					fileName = fileObj.name.substr(0,20) + '...';
-				} else {
-					fileName = fileObj.name;
-				}
-				$('#' + $(this).attr('id') + 'Queue').append('<div id="' + $(this).attr('id') + queueID + '" class="fileUploadQueueItem">\
-						<div class="cancel">\
-							<a href="javascript:$(\'#' + $(this).attr('id') + '\').fileUploadCancel(\'' + queueID + '\')"><img src="' + settings.cancelImg + '" border="0" /></a>\
-						</div>\
-						<span class="fileName">' + fileName + ' (' + byteSize + suffix + ')</span><span class="percentage">&nbsp;</span>\
-						<div class="fileUploadProgress" style="width: 100%;">\
-							<div id="' + $(this).attr('id') + queueID + 'ProgressBar" class="fileUploadProgressBar" style="width: 1px; height: 3px;"></div>\
-						</div>\
-					</div>');
 			}
-		}
 	});
 });
 function closeTheWindow() {
