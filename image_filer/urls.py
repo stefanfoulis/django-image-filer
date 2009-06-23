@@ -23,7 +23,7 @@ urlpatterns = patterns('image_filer.views',
     
     url(r'^image/(?P<image_id>\d+)/export/$', 'export_image', name='image_filer-export_image'),
 ) + patterns('django.views.generic.simple',
-    #(r'^folder/$', 'redirect_to',  {'url': '/admin/image_filer/directory/'}),
-    #(r'^image/$', 'redirect_to',  {'url': '/admin/image_filer/directory/'})
+    (r'^folder/$', 'redirect_to',  {'url': '/admin/image_filer/directory/'}),
+    (r'^image/$', 'redirect_to',  {'url': '/admin/image_filer/directory/'})
 )
     
