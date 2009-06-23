@@ -1,5 +1,8 @@
 syntax: glob
 *.pyc
+.DS_Store
+.project
+.pydevproject
 syntax: glob
 *~
 syntax: regexp
