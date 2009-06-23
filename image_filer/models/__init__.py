@@ -96,40 +96,6 @@ class Folder(models.Model):
     
     objects = FolderManager()
     
-    
-    def _get_file_relationships(self):
-        # TODO: make this a "multi iterator" that can iterate over multiple
-        #         querysets without having to load all objects
-        rel = []
-        for attr in dir(self):
-            if not attr.startswith('_') and attr.endswith('_files'):
-                # TODO: also check for fieldtype
-                #print attr
-                rel.append(getattr(self, attr))
-        return rel
-    
-    @property
-    def file_count(self):
-        c = 0
-        rel = self._get_file_relationships()
-        for files in rel:
-            c += files.count()
-        return c
-    @property
-    def children_count(self):
-        return self.children.count()
-    @property
-    def item_count(self):
-        return self.file_count + self.children_count
-    @property
-    def files(self):
-        rel = self._get_file_relationships()
-        result = []
-        for files in rel:
-            for file in files.all():
-                result.append(file)
-        return result
-    
     def has_edit_permission(self, request):
         return self.has_generic_permission(request, 'edit')
     def has_read_permission(self, request):
@@ -165,6 +131,26 @@ class Folder(models.Model):
     
     def __unicode__(self):
         return u"%s" % (self.name,)
+    def __init__(self, *args, **kwargs):
+        class Statistics(object):
+            def __init__(self, instance):
+                self._instance = instance
+                
+            @property
+            def file_count(self):
+                c = 0
+                rel = self._instance._get_file_relationships()
+                for files in rel:
+                    c += files.count()
+                return c
+            @property
+            def children_count(self):
+                return self._instance.children.count()
+            @property
+            def item_count(self):
+                return self.file_count + self.children_count
+        self.statistics = Statistics(self)
+        return super(Folder, self).__init__(*args, **kwargs)
     class Meta:
         unique_together = (('parent','name'),)
         ordering = ('name',)
@@ -176,6 +162,90 @@ try:
 except mptt.AlreadyRegistered:
     pass
 
+
+class File(models.Model):
+    """
+    Represents a "File" thing that is in a Folder.
+    Subclasses should their own overrides for many functions to be more specific,
+    but this class has all the needed methods for basic usage.
+        path: return the full absolute path to the physical file (may be ommited in special cases)
+        file: return a file object
+    """
+    file_type = 'unknown'
+    folder = models.ForeignKey(Folder, related_name='files', null=True, blank=True)
+    
+    original_filename = models.CharField(max_length=255, blank=True, null=True)
+    name = models.CharField(max_length=255, null=True, blank=True)
+    
+    owner = models.ForeignKey(auth_models.User, related_name='owned_%(class)ss', null=True, blank=True)
+    
+    author = models.CharField(max_length=255, null=True, blank=True)
+    
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+    modified_at = models.DateTimeField(auto_now=True)
+    
+    must_always_publish_author_credit = models.BooleanField(default=False)
+    must_always_publish_copyright = models.BooleanField(default=False)
+    
+    notes = models.TextField(null=True, blank=True)
+    
+    _file_fallback = models.FileField(upload_to='catalogue', null=True, blank=True)
+    
+    @property
+    def icon(self):
+        return "%s/image_filer/icon_file.gif" % settings.MEDIA_URL
+    def has_edit_permission(self, request):
+        return self.has_generic_permission(request, 'edit')
+    def has_read_permission(self, request):
+        return self.has_generic_permission(request, 'read')
+    def has_add_children_permission(self, request):
+        return self.has_generic_permission(request, 'add_children')
+    def has_generic_permission(self, request, type):
+        """
+        Return true if the current user has permission on this
+        image. Return the string 'ALL' if the user has all rights.
+        """
+        user = request.user
+        if not user.is_authenticated() or not user.is_staff:
+            return False
+        elif user.is_superuser:
+            return True
+        elif user == self.owner:
+            return True
+        elif self.folder:
+            return self.folder.has_generic_permission(request, type)
+        else:
+            return False
+    @property
+    def label(self):
+        if self.name in ['',None]:
+            return self.original_filename or 'unnamed file'
+        else:
+            return self.name
+    def __unicode__(self):
+        return self.label
+
+class ImageFile(File):
+    _file = ImageWithThumbnailsField(
+                    upload_to='catalogue',
+                    #storage=uuid_file_system_storage,
+                    height_field='_height_field', width_field='_width_field', 
+                    thumbnail={'size': (50, 50)},
+                    extra_thumbnails={
+                        'admin_clipboard_icon': {'size': (32,32), 'options': ['crop','upscale']},
+                        'admin_sidebar_preview': {'size': (210,210), 'options': ['crop',]},
+                        'admin_directory_listing_icon': {'size': (48,48), 'options': ['crop','upscale']},
+                        'admin_tiny_icon': {'size': (32,32), 'options': ['crop','upscale']},
+                    },
+                    null=True, blank=True)
+
+    _height_field = models.IntegerField(null=True, blank=True) 
+    _width_field = models.IntegerField(null=True, blank=True)
+    date_taken = models.DateTimeField(_('date taken'), null=True, blank=True, editable=False)
+    
+    default_alt_text = models.CharField(max_length=255, blank=True, null=True)
+    default_caption = models.CharField(max_length=255, blank=True, null=True)
+    
 class Image(AbstractFile):
     file_type = 'image'
     file = ImageWithThumbnailsField(
@@ -194,8 +264,7 @@ class Image(AbstractFile):
     _width_field = models.IntegerField(null=True, blank=True)
     
     date_taken = models.DateTimeField(_('date taken'), null=True, blank=True, editable=False)
-    
-    contact = models.ForeignKey(auth_models.User, related_name='contact_of_files', null=True, blank=True)
+
     
     default_alt_text = models.CharField(max_length=255, blank=True, null=True)
     default_caption = models.CharField(max_length=255, blank=True, null=True)
@@ -204,16 +273,6 @@ class Image(AbstractFile):
     
     must_always_publish_author_credit = models.BooleanField(default=False)
     must_always_publish_copyright = models.BooleanField(default=False)
-    
-    # TODO: Factor out customer specific fields... maybe a m2m?
-    can_use_for_web = models.BooleanField(default=True)
-    can_use_for_print = models.BooleanField(default=True)
-    can_use_for_teaching = models.BooleanField(default=True)
-    can_use_for_research = models.BooleanField(default=True)
-    can_use_for_private_use = models.BooleanField(default=True)
-    
-    usage_restriction_notes = models.TextField(null=True, blank=True)
-    notes = models.TextField(null=True, blank=True)
     
     has_all_mandatory_data = models.BooleanField(default=False, editable=False)
     

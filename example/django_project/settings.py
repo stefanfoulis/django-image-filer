@@ -14,7 +14,7 @@ ADMINS = (
 MANAGERS = ADMINS
 if True:
     DATABASE_ENGINE = 'mysql'           # 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
-    DATABASE_NAME = 'image_filer_example'             # Or path to database file if using sqlite3.
+    DATABASE_NAME = 'image_filer_example2'             # Or path to database file if using sqlite3.
     DATABASE_USER = 'root'             # Not used with sqlite3.
     DATABASE_PASSWORD = ''         # Not used with sqlite3.
     DATABASE_HOST = 'localhost'             # Set to empty string for localhost. Not used with sqlite3.
@@ -103,7 +103,7 @@ INSTALLED_APPS = (
     'django.contrib.sites',
     'django.contrib.admin',
     
-    'south',
+    #'south',
     
     'mptt',
     'sorl.thumbnail',

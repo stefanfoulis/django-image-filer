@@ -249,7 +249,7 @@ def ajax_upload(request, folder_id=None):
                 #sprint image
             else:
                 pass#print imageform.errors
-            
+    print "going to respond"       
     return render_to_response('image_filer/include/clipboard_item_rows.html', {'items': file_items }, context_instance=RequestContext(request))
 
 @login_required

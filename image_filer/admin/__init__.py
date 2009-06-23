@@ -56,11 +56,11 @@ class DirectoryAdmin(admin.ModelAdmin):
 admin.site.register([Directory], DirectoryAdmin)
 
 
-class ImageAdmin(PrimitivePermissionAwareModelAdmin):
+class ImageFileAdmin(PrimitivePermissionAwareModelAdmin):
     list_display = ('label',)
     list_per_page = 10
     search_fields = ['name', 'original_filename','default_alt_text','default_caption','usage_restriction_notes','notes', 'author']
-    raw_id_fields = ('contact', 'owner',)
+    raw_id_fields = ('owner',)
     # save_as hack, because without save_as it is impossible to hide the 
     # save_and_add_another if save_as is False.
     # To show only save_and_continue and save in the submit row we need save_as=True
@@ -83,15 +83,12 @@ class ImageAdmin(PrimitivePermissionAwareModelAdmin):
         #    'fields': ('manipulation_profile', )
         #}),
     )
-    def admin_thumbnail(self,xs):
-        return mark_safe('<img src="/media/image_filer/icons/plainfolder_32x32.png" alt="Folder Icon" />')
-    admin_thumbnail.allow_tags = True
     def response_change(self, request, obj):
         '''
         Overrides the default to be able to forward to the directory listing
         instead of the default change_list_view
         '''
-        r = super(ImageAdmin, self).response_change(request, obj)
+        r = super(ImageFileAdmin, self).response_change(request, obj)
         print r['Location']
         if r['Location']:
             # it was a successful save
@@ -110,7 +107,7 @@ class ImageAdmin(PrimitivePermissionAwareModelAdmin):
     def render_change_form(self, request, context, add=False, change=False, form_url='', obj=None):
         extra_context = {'show_delete': True}
         context.update(extra_context)
-        return super(ImageAdmin, self).render_change_form(request=request, context=context, add=False, change=False, form_url=form_url, obj=obj)
+        return super(ImageFileAdmin, self).render_change_form(request=request, context=context, add=False, change=False, form_url=form_url, obj=obj)
     
     def delete_view(self, request, object_id, extra_context=None):
         '''
@@ -128,7 +125,7 @@ class ImageAdmin(PrimitivePermissionAwareModelAdmin):
         except self.model.DoesNotExist:
             obj = None
         
-        r = super(ImageAdmin, self).delete_view(request=request, object_id=object_id, extra_context=extra_context)
+        r = super(ImageFileAdmin, self).delete_view(request=request, object_id=object_id, extra_context=extra_context)
         
         url = r.get("Location", None)
         if url in ["../../../../","../../"]:
@@ -140,7 +137,7 @@ class ImageAdmin(PrimitivePermissionAwareModelAdmin):
             return HttpResponseRedirect(url)
         return r
 
-admin.site.register(Image, ImageAdmin)
+admin.site.register([ImageFile], ImageFileAdmin)
 
 class AddFolderPopupForm(forms.ModelForm):
     folder = forms.HiddenInput()
