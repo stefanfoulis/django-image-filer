@@ -225,8 +225,11 @@ if(jQuery)(
 					$(this).bind("rfuComplete", {'action': settings.onComplete}, function(event, queueID, fileObj, response, data) {
 						if (event.data.action(event, queueID, fileObj, unescape(response), data) !== false) {
 							var responsetext = unescape(response);
-							$("#" + $(this).attr('id') + queueID).before(responsetext).remove();
+							var newElements = $(responsetext);
+							$("#" + $(this).attr('id') + queueID).before(newElements).remove();
 							//$("#" + $(this).attr('id') + queueID).before(responsetext);
+							newElements.effect("highlight", {}, 1000);
+							
 						}
 					});
 					if (typeof(settings.onAllComplete) == 'function') {
