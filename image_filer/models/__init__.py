@@ -9,6 +9,7 @@ from django.utils.translation import ugettext_lazy as _
 from datetime import datetime, date
 from image_filer.utils import EXIF
 from sorl.thumbnail.fields import ImageWithThumbnailsField
+from sorl.thumbnail.main import DjangoThumbnail
 from image_filer.fields import ImageFilerModelImageField
 # hack, so admin filters get loaded
 #from image_filer.admin import filters as admin_filters
@@ -42,6 +43,13 @@ uuid_file_system_storage = UUIDFileSystemStorage(
                                 base_url=CATALOGUE_BASE_URL
                                 )
 '''
+DEFAULT_ICON_SIZES = {
+    'admin_clipboard_icon': (32,32),
+    'admin_sidebar_preview': (210,0),
+    'admin_directory_listing_icon': (48,48),
+    'admin_tiny_icon': (32,32),
+    'admin_file_header_icon': (64,64),
+}
 class AbstractFile(models.Model):
     """
     Represents a "File-ish" thing that is in a Folder. Any subclasses must
@@ -59,6 +67,10 @@ class AbstractFile(models.Model):
     
     uploaded_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
+    
+    def icons(self):
+        r = []
+        return r
     
     def __unicode__(self):
         if self.name in ('', None):
@@ -176,9 +188,25 @@ try:
 except mptt.AlreadyRegistered:
     pass
 
+'''
+class File(AbstractFile):
+    file_type='generic'
+    file = models.FileField(upload_to='catalogue', null=True, blank=True)
+    
+    has_all_mandatory_data = models.BooleanField(default=False, editable=False)
+    
+    def _check_validity(self):
+        if not self.name or not self.contact:
+            return False
+        return True
+    def save(self, *args, **kwargs):
+        self.has_all_mandatory_data = self._check_validity()
+        super(File, self).save(*args, **kwargs)
+''' 
 class Image(AbstractFile):
     file_type = 'image'
-    file = ImageWithThumbnailsField(
+    file = models.FileField(upload_to='catalogue', null=True, blank=True)
+    '''ImageWithThumbnailsField(
                     upload_to='catalogue',
                     #storage=uuid_file_system_storage,
                     height_field='_height_field', width_field='_width_field', 
@@ -188,8 +216,18 @@ class Image(AbstractFile):
                         'admin_sidebar_preview': {'size': (210,210), 'options': ['crop',]},
                         'admin_directory_listing_icon': {'size': (48,48), 'options': ['crop','upscale']},
                         'admin_tiny_icon': {'size': (32,32), 'options': ['crop','upscale']},
+                        'admin_file_header_icon': {'size': (64,64), 'options': ['crop','upscale']},
                     },
                     null=True, blank=True)
+    '''
+    @property
+    def icons(self):
+        thumbnails = {}
+        for name, size in DEFAULT_ICON_SIZES:
+            tn = DjangoThumbnail(
+                    source=self.file, 
+                    requested_size=size)
+            thumbnails[name] = tn
     _height_field = models.IntegerField(null=True, blank=True) 
     _width_field = models.IntegerField(null=True, blank=True)
     
@@ -423,14 +461,14 @@ class DummyFolder(object):
     @property
     def icons(self):
         r = {}
+        print "test"
         if getattr(self, '_icon', False):
-            for size in DEFAULT_ICON_SIZES:
-                r[size] = "%simage_filer/icons/%s_%sx%s.png" % (settings.MEDIA_URL, self._icon, size, size)
+            for name, size in DEFAULT_ICON_SIZES.items():
+                print name, size
+                r["%sx%s" % (size[0],size[1])] = "%simage_filer/icons/%s_%sx%s.png" % (settings.MEDIA_URL, self._icon, size[0], size[1])
+                r[name] = "%simage_filer/icons/%s_%sx%s.png" % (settings.MEDIA_URL, self._icon, size[0], size[1])
+        print r
         return r
-
-DEFAULT_ICON_SIZES = (
-        '32','48','64',
-)
 
 class UnfiledImages(DummyFolder):
     name = _("unfiled files")
