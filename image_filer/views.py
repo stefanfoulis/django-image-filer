@@ -15,6 +15,8 @@ from django.contrib.auth.models import User
 
 from django import forms
 
+from django.contrib import admin
+
 class NewFolderForm(forms.ModelForm):
     class Meta:
         model = Folder
@@ -116,6 +118,7 @@ def directory_listing(request, folder_id=None, viewtype=None):
         }
     except:
         permissions = {}
+    print admin.site.root_path
     return render_to_response('image_filer/directory_listing.html', {
             'folder':folder,
             'folder_children':folder_children,
@@ -128,6 +131,7 @@ def directory_listing(request, folder_id=None, viewtype=None):
             'show_result_count': show_result_count,
             'limit_search_to_folder': limit_search_to_folder,
             'is_popup': popup_status(request),
+            'root_path': "/%s" % admin.site.root_path, # needed in the admin/base.html template for logout links and stuff 
         }, context_instance=RequestContext(request))
 
 @login_required
