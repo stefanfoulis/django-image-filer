@@ -268,6 +268,36 @@ class Image(AbstractFile):
             return self.original_filename or 'unnamed file'
         else:
             return self.name
+    @property
+    def width(self):
+        try:
+            return self.file.width
+        except:
+            return 0
+    @property
+    def height(self):
+        try:
+            return self.file.height
+        except:
+            return 0
+    @property
+    def size(self):
+        try:
+            return self.file.size
+        except:
+            return 0
+    @property
+    def thumbnails(self):
+        # we build an extra dict here mainly
+        # to prevent the default errors to 
+        # get thrown and to add a default missing
+        # image
+        if not hasattr(self, '_thumbnails'):
+            tns = {}
+            for name, tn in self.file.extra_thumbnails.items():
+                tns[name] = tn
+            self._thumbnails = tns
+        return self._thumbnails
     label = property(label)
     def __unicode__(self):
         return self.label
