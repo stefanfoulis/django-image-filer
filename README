@@ -12,8 +12,6 @@ for cms integration:
 
 Setup
 - add 'image_filer' to INSTALLED_APPS
-- add (r'^admin/image_filer/', include('image_filer.urls')),
-	to your urls.py before url(r'^admin/(.*)', admin.site.root), 
 - make image_filer/media/image_filer available in MEDIA_ROOT
 
 
@@ -27,6 +25,3 @@ To use the example project virtualenv and pip can be used to setup a test enviro
  	- now the virtualenv is active... and syncdb/runserver can be run with ./manage.py
 
 
-
-History:
- - added some nice jQuery stuff for file upload
