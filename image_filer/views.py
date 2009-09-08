@@ -94,20 +94,20 @@ def directory_listing(request, folder_id=None, viewtype=None):
         f.perms = _userperms(f, request)
         if hasattr(f, 'has_read_permission'):
             if f.has_read_permission(request):
-                print "%s has read permission for %s" % (request.user, f)
+                #print "%s has read permission for %s" % (request.user, f)
                 folder_children.append(f)
             else:
-                print "%s has NO read permission for %s" % (request.user, f)
+                pass#print "%s has NO read permission for %s" % (request.user, f)
         else:
             folder_children.append(f) 
     for f in image_qs:
         f.perms = _userperms(f, request)
         if hasattr(f, 'has_read_permission'):
             if f.has_read_permission(request):
-                print "%s has read permission for %s" % (request.user, f)
+                #print "%s has read permission for %s" % (request.user, f)
                 folder_files.append(f)
             else:
-                print "%s has NO read permission for %s" % (request.user, f)
+                pass#print "%s has NO read permission for %s" % (request.user, f)
         else:
             folder_files.append(f)
     try:
@@ -118,7 +118,7 @@ def directory_listing(request, folder_id=None, viewtype=None):
         }
     except:
         permissions = {}
-    print admin.site.root_path
+    #print admin.site.root_path
     return render_to_response('image_filer/directory_listing.html', {
             'folder':folder,
             'folder_children':folder_children,
