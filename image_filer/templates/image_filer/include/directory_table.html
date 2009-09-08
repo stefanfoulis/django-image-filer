@@ -17,11 +17,11 @@
                 <tr class="{% cycle rowcolors %}">
                 	<td></td>
 				    <!-- FileIcon -->
-				    <td><a href="{% url image_filer-directory_listing subfolder.id %}{% if is_popup %}?_popup=1{% endif %}"><img src="/media/image_filer/icons/plainfolder_48x48.png" alt="Folder Icon" /></a></td>
+				    <td><a href="{% url admin:image_filer-directory_listing subfolder.id %}{% if is_popup %}?_popup=1{% endif %}"><img src="/media/image_filer/icons/plainfolder_48x48.png" alt="Folder Icon" /></a></td>
 				    <!-- Filename/Dimensions -->
 				    <td>
 				    	{% if is_popup %}{% else %}<a style="display: block; float: right;" class="changelink" href="/admin/image_filer/folder/{{ subfolder.id }}">Change</a>{% endif %}
-				    	<div><b><a href="{% url image_filer-directory_listing subfolder.id %}{% if is_popup %}?_popup=1{% endif %}">{{ subfolder.name }}</a></b></div>
+				    	<div><b><a href="{% url admin:image_filer-directory_listing subfolder.id %}{% if is_popup %}?_popup=1{% endif %}">{{ subfolder.name }}</a></b></div>
 						<div>owner: {{ subfolder.owner }} Folders: {{ subfolder.children_count }} Images: {{ subfolder.file_count }}</div>
 					</td>
 					<td></td>

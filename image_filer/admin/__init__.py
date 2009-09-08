@@ -98,10 +98,10 @@ class ImageAdmin(PrimitivePermissionAwareModelAdmin):
             if r['Location'] in ['../']:
                 # this means it was a save: redirect to the directory view
                 if obj.folder:
-                    url = reverse('image_filer-directory_listing', 
+                    url = reverse('admin:image_filer-directory_listing', 
                                   kwargs={'folder_id': obj.folder.id})
                 else:
-                    url = reverse('image_filer-directory_listing-unfiled_images')
+                    url = reverse('admin:image_filer-directory_listing-unfiled_images')
                 return HttpResponseRedirect(url)
             else:
                 # this means it probably was a save_and_continue_editing
@@ -133,12 +133,21 @@ class ImageAdmin(PrimitivePermissionAwareModelAdmin):
         url = r.get("Location", None)
         if url in ["../../../../","../../"]:
             if parent_folder:
-                url = reverse('image_filer-directory_listing', 
+                url = reverse('admin:image_filer-directory_listing', 
                                   kwargs={'folder_id': parent_folder.id})
             else:
-                url = reverse('image_filer-directory_listing-unfiled_images')
+                url = reverse('admin:image_filer-directory_listing-unfiled_images')
             return HttpResponseRedirect(url)
         return r
+    def get_urls(self):
+        from django.conf.urls.defaults import patterns, url
+        urls = super(ImageAdmin, self).get_urls()
+        from image_filer import views
+        url_patterns = patterns('',
+            url(r'^(?P<image_id>\d+)/export/$', self.admin_site.admin_view(views.export_image), name='image_filer-export_image'),
+        )
+        url_patterns.extend(urls)
+        return url_patterns
 
 admin.site.register(Image, ImageAdmin)
 
@@ -166,7 +175,6 @@ class FolderAdmin(PrimitivePermissionAwareModelAdmin):
         """
         parent_id = request.REQUEST.get('parent_id', None)
         if parent_id:
-            print "yay! has a parent1"
             return AddFolderPopupForm
         else:
             return super(FolderAdmin, self).get_form(request, obj=None, **kwargs)
@@ -193,10 +201,10 @@ class FolderAdmin(PrimitivePermissionAwareModelAdmin):
             # it was a successful save
             if r['Location'] in ['../']:
                 if obj.parent:
-                    url = reverse('image_filer-directory_listing', 
+                    url = reverse('admin:image_filer-directory_listing', 
                                   kwargs={'folder_id': obj.parent.id})
                 else:
-                    url = reverse('image_filer-directory_listing-root')
+                    url = reverse('admin:image_filer-directory_listing-root')
                 return HttpResponseRedirect(url)
             else:
                 # this means it probably was a save_and_continue_editing
@@ -227,15 +235,34 @@ class FolderAdmin(PrimitivePermissionAwareModelAdmin):
         url = r.get("Location", None)
         if url in ["../../../../","../../"]:
             if parent_folder:
-                url = reverse('image_filer-directory_listing', 
+                url = reverse('admin:image_filer-directory_listing', 
                                   kwargs={'folder_id': parent_folder.id})
             else:
-                url = reverse('image_filer-directory_listing-root')
+                url = reverse('admin:image_filer-directory_listing-root')
             return HttpResponseRedirect(url)
         return r
     def icon_img(self,xs):
         return mark_safe('<img src="/media/img/icons/plainfolder_32x32.png" alt="Folder Icon" />')
     icon_img.allow_tags = True
+    
+    def get_urls(self):
+        from django.conf.urls.defaults import patterns, url
+        urls = super(FolderAdmin, self).get_urls()
+        from image_filer import views
+        url_patterns = patterns('',
+            # we override the default list view with our own directory listing of the root directories
+            url(r'^$', self.admin_site.admin_view(views.directory_listing), name='image_filer-directory_listing-root'),
+            url(r'^([0-9]+)/list/$', self.admin_site.admin_view(views.directory_listing), name='image_filer-directory_listing'),
+            
+            url(r'^(?P<folder_id>\d+)/make_folder/$', self.admin_site.admin_view(views.make_folder), name='image_filer-directory_listing-make_folder'),
+            url(r'^make_folder/$', self.admin_site.admin_view(views.make_folder), name='image_filer-directory_listing-make_root_folder'),
+            
+            url(r'^images_with_missing_data/$', self.admin_site.admin_view(views.directory_listing), {'viewtype': 'images_with_missing_data'}, name='image_filer-directory_listing-images_with_missing_data'),
+            url(r'^unfiled_images/$', self.admin_site.admin_view(views.directory_listing), {'viewtype': 'unfiled_images'}, name='image_filer-directory_listing-unfiled_images'),
+        )
+        url_patterns.extend(urls)
+        return url_patterns
+        
     '''
     def queryset(self, request):
         qs = super(FolderAdmin,self).queryset(request)
@@ -260,9 +287,6 @@ class ClipboardAdmin(admin.ModelAdmin):
     def get_urls(self):
         from django.conf.urls.defaults import patterns, url
         urls = super(ClipboardAdmin, self).get_urls()
-        # helper for url pattern generation
-        info = "%sadmin_%s_%s" % (self.admin_site.name, self.model._meta.app_label, self.model._meta.module_name)
-        #pat = lambda regex, fn: url(regex, self.admin_site.admin_view(fn), name='%s_%s' % (info, fn.__name__))
         from image_filer import views
         url_patterns = patterns('',
             #url(r'^([0-9]+)/move-page/$', self.admin_site.admin_view(self.move_entity), name='%s_%s' % (info, 'move_page') ),
@@ -270,11 +294,8 @@ class ClipboardAdmin(admin.ModelAdmin):
             url(r'^operations/discard_clipboard/$', self.admin_site.admin_view(views.discard_clipboard), name='image_filer-discard_clipboard'),
             url(r'^operations/delete_clipboard/$', self.admin_site.admin_view(views.delete_clipboard), name='image_filer-delete_clipboard'),
             url(r'^operations/move_file_to_clipboard/$', self.admin_site.admin_view(views.move_file_to_clipboard), name='image_filer-move_file_to_clipboard'),
-            
             # upload does it's own permission stuff (because of the stupid flash missing cookie stuff)
             url(r'^operations/upload/$', views.ajax_upload, name='image_filer-ajax_upload'),
-            
-            #pat(r'^([0-9]+)/move-page/$', self.move_entity),
         )
         url_patterns.extend(urls)
         return url_patterns

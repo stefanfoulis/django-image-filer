@@ -19,7 +19,7 @@ class ImageFilerImageWidget(ForeignKeyRawIdWidget):
         css_id_description_txt = "%s_description_txt" % css_id
         if attrs is None:
             attrs = {}
-        related_url = reverse('image_filer-directory_listing-root')
+        related_url = reverse('admin:image_filer-directory_listing-root')
         params = self.url_parameters()
         if params:
             url = '?' + '&amp;'.join(['%s=%s' % (k, v) for k, v in params.items()])

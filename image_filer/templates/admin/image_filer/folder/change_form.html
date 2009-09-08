@@ -4,9 +4,9 @@
 {% block breadcrumbs %}
 <div class="breadcrumbs">
 	<a href="/admin/">Home</a> › <a href="/admin/image_filer/">Image Portfolio</a> › 
-	<a href="{% url image_filer-directory_listing-root %}">Root</a>
+	<a href="{% url admin:image_filer-directory_listing-root %}">Root</a>
 	{% for ancestor_folder in original.get_ancestors %}
-	 › <a href="{% url image_filer-directory_listing ancestor_folder.id %}">{{ ancestor_folder.name }}</a>
+	 › <a href="{% url admin:image_filer-directory_listing ancestor_folder.id %}">{{ ancestor_folder.name }}</a>
 	 {% endfor %} › 
 	 {{ original.name }}
 </div>
