@@ -13,7 +13,7 @@
 $(document).ready(function() {
 	$('#fileInput').fileUpload ({
 		'uploader'  : '{{ MEDIA_URL }}image_filer/js/jquery.uploadify-v1.6.2/uploader.swf',
-		'script'    : '{% url image_filer-ajax_upload %}',
+		'script'    : '{% url admin:image_filer-ajax_upload %}',
 		'cancelImg' : '{{ MEDIA_URL }}image_filer/img/close.gif',
 		'hideButton': true,
 		'auto'      : true,

@@ -8,7 +8,8 @@ from django.core.files.storage import FileSystemStorage
 from django.utils.translation import ugettext_lazy as _
 from datetime import datetime, date
 from image_filer.utils import EXIF
-from sorl.thumbnail.fields import ImageWithThumbnailsField
+from sorl.thumbnail import fields as thumbnail_fields
+#from sorl.thumbnail.fields import ImageWithThumbnailsField
 from image_filer.fields import ImageFilerModelImageField
 # hack, so admin filters get loaded
 #from image_filer.admin import filters as admin_filters
@@ -178,7 +179,7 @@ except mptt.AlreadyRegistered:
 
 class Image(AbstractFile):
     file_type = 'image'
-    file = ImageWithThumbnailsField(
+    file = thumbnail_fields.ImageWithThumbnailsField(
                     upload_to='catalogue',
                     #storage=uuid_file_system_storage,
                     height_field='_height_field', width_field='_width_field', 

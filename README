@@ -4,7 +4,7 @@ Requirements:
 - PIL
 - mptt
 - sorl.thumbnail
-- django 1.1 (trunk)
+- django 1.1
 - (south) not a requirement, but handy
 
 for cms integration:

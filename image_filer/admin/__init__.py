@@ -255,4 +255,27 @@ class ClipboardAdmin(admin.ModelAdmin):
     filter_horizontal = ('files',)
     raw_id_fields = ('user',)
     verbose_name = "DEBUG Clipboard"
-#admin.site.register(Clipboard, ClipboardAdmin)
+    verbose_name_plural = "DEBUG Clipboards"
+    
+    def get_urls(self):
+        from django.conf.urls.defaults import patterns, url
+        urls = super(ClipboardAdmin, self).get_urls()
+        # helper for url pattern generation
+        info = "%sadmin_%s_%s" % (self.admin_site.name, self.model._meta.app_label, self.model._meta.module_name)
+        #pat = lambda regex, fn: url(regex, self.admin_site.admin_view(fn), name='%s_%s' % (info, fn.__name__))
+        from image_filer import views
+        url_patterns = patterns('',
+            #url(r'^([0-9]+)/move-page/$', self.admin_site.admin_view(self.move_entity), name='%s_%s' % (info, 'move_page') ),
+            url(r'^operations/paste_clipboard_to_folder/$', self.admin_site.admin_view(views.paste_clipboard_to_folder), name='image_filer-paste_clipboard_to_folder'),
+            url(r'^operations/discard_clipboard/$', self.admin_site.admin_view(views.discard_clipboard), name='image_filer-discard_clipboard'),
+            url(r'^operations/delete_clipboard/$', self.admin_site.admin_view(views.delete_clipboard), name='image_filer-delete_clipboard'),
+            url(r'^operations/move_file_to_clipboard/$', self.admin_site.admin_view(views.move_file_to_clipboard), name='image_filer-move_file_to_clipboard'),
+            
+            # upload does it's own permission stuff (because of the stupid flash missing cookie stuff)
+            url(r'^operations/upload/$', views.ajax_upload, name='image_filer-ajax_upload'),
+            
+            #pat(r'^([0-9]+)/move-page/$', self.move_entity),
+        )
+        url_patterns.extend(urls)
+        return url_patterns
+admin.site.register(Clipboard, ClipboardAdmin)

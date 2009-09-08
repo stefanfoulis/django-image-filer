@@ -216,11 +216,11 @@ def ajax_upload(request, folder_id=None):
     session_key = request.GET.get('jsessionid')
     request.session = engine.SessionStore(session_key)
     request.user = User.objects.get(id=request.session['_auth_user_id'])
-    #print request.session['_auth_user_id']
-    #print session_key
-    #print engine
-    #print request.user
-    #print request.session
+    print request.session['_auth_user_id']
+    print session_key
+    print engine
+    print request.user
+    print request.session
     # upload and save the file
     if not request.method == 'POST':
         return HttpResponse("must be POST")
@@ -266,16 +266,7 @@ def paste_clipboard_to_folder(request):
             tools.discard_clipboard(clipboard)
         else:
             raise PermissionDenied
-    return HttpResponseRedirect( '%s%s' % (request.POST.get('redirect_to', ''), popup_param(request) ) )
-
-@login_required
-def clone_clipboard_to_folder(request):
-    if request.method=='POST':
-        folder = Folder.objects.get( id=request.POST.get('folder_id') )
-        clipboard = Clipboard.objects.get( id=request.POST.get('clipboard_id') )
-        tools.move_files_from_clipboard_to_folder(clipboard, folder)
-        tools.discard_clipboard(clipboard)
-    return HttpResponseRedirect( '%s%s' % (request.POST.get('redirect_to', ''), popup_param(request) ) )
+    return HttpResponseRedirect( '%s%s' % (request.REQUEST.get('redirect_to', ''), popup_param(request) ) )
 
 @login_required
 def discard_clipboard(request):

@@ -10,7 +10,7 @@
 	<td>{{ file.owner }}</td>
 	<td>{% if file.is_original %}original{% else %}cloned{% endif %}</td>
 	<td>{{ request }}
-		<form action="{% url image_filer-move_file_to_clipboard %}" method="post">
+		<form action="{% url admin:image_filer-move_file_to_clipboard %}" method="post">
 			<input type="hidden" name="file_id" value="{{ file.id }}" />
 			<input type="hidden" name="redirect_to" value="{{ current_url }}" />
 			<input type="submit" value="move to clipboard" />
