@@ -216,11 +216,11 @@ def ajax_upload(request, folder_id=None):
     session_key = request.GET.get('jsessionid')
     request.session = engine.SessionStore(session_key)
     request.user = User.objects.get(id=request.session['_auth_user_id'])
-    print request.session['_auth_user_id']
-    print session_key
-    print engine
-    print request.user
-    print request.session
+    #print request.session['_auth_user_id']
+    #print session_key
+    #print engine
+    #print request.user
+    #print request.session
     # upload and save the file
     if not request.method == 'POST':
         return HttpResponse("must be POST")
