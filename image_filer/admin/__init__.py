@@ -36,26 +36,6 @@ class PrimitivePermissionAwareModelAdmin(admin.ModelAdmin):
         return self.has_change_permission(request, obj)
 
 
-class Directory(Folder):
-    """
-    Dummy Directory Model to allow the addition of an entry in the app menu
-    """
-    class Meta:
-        proxy = True
-        verbose_name = "Directory Listing"
-        verbose_name_plural = "Directory Listing"
-
-class DirectoryAdmin(admin.ModelAdmin):
-    def has_add_permission(self, request):
-        return False
-    def has_change_permission(self, request, obj=None):
-        opts = self.opts
-        return request.user.has_perm(opts.app_label + '.' + 'can_use_directory_listing')
-    def has_delete_permission(self, request, obj=None):
-        return False
-admin.site.register([Directory], DirectoryAdmin)
-
-
 class ImageAdmin(PrimitivePermissionAwareModelAdmin):
     list_display = ('label',)
     list_per_page = 10
@@ -252,7 +232,7 @@ class FolderAdmin(PrimitivePermissionAwareModelAdmin):
         url_patterns = patterns('',
             # we override the default list view with our own directory listing of the root directories
             url(r'^$', self.admin_site.admin_view(views.directory_listing), name='image_filer-directory_listing-root'),
-            url(r'^([0-9]+)/list/$', self.admin_site.admin_view(views.directory_listing), name='image_filer-directory_listing'),
+            url(r'^(?P<folder_id>\d+)/list/$', self.admin_site.admin_view(views.directory_listing), name='image_filer-directory_listing'),
             
             url(r'^(?P<folder_id>\d+)/make_folder/$', self.admin_site.admin_view(views.make_folder), name='image_filer-directory_listing-make_folder'),
             url(r'^make_folder/$', self.admin_site.admin_view(views.make_folder), name='image_filer-directory_listing-make_root_folder'),
@@ -261,16 +241,7 @@ class FolderAdmin(PrimitivePermissionAwareModelAdmin):
             url(r'^unfiled_images/$', self.admin_site.admin_view(views.directory_listing), {'viewtype': 'unfiled_images'}, name='image_filer-directory_listing-unfiled_images'),
         )
         url_patterns.extend(urls)
-        return url_patterns
-        
-    '''
-    def queryset(self, request):
-        qs = super(FolderAdmin,self).queryset(request)
-        if request.user.is_superuser:
-            return qs
-        else:
-            return qs.filter(owner=request.user)
-    '''     
+        return url_patterns   
     
 admin.site.register(Folder, FolderAdmin)
 
@@ -299,4 +270,10 @@ class ClipboardAdmin(admin.ModelAdmin):
         )
         url_patterns.extend(urls)
         return url_patterns
+    def has_add_permission(self, request):
+        return False
+    def has_change_permission(self, request, obj=None):
+        return False
+    def has_delete_permission(self, request, obj=None):
+        return False
 admin.site.register(Clipboard, ClipboardAdmin)
