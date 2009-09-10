@@ -6,7 +6,7 @@
 $(document).ready(function() {
             var settings = {
                 flash_url : "{{ IMAGE_FILER_MEDIA_URL }}flash/swfupload.swf",
-                upload_url: "http://localhost:8000{% url admin:image_filer-ajax_upload %}",
+                upload_url: "{% url admin:image_filer-ajax_upload %}",
                 post_params: {'jsessionid':$.cookie('sessionid')},
                 file_size_limit : "100 MB",
                 file_types : "*.*",
