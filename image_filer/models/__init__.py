@@ -23,6 +23,7 @@ from django.contrib.auth import models as auth_models
 
 from django.conf import settings
 from image_filer.utils.pil_exif import get_exif_for_file, set_exif_subject_location
+from image_filer import context_processors
 
 IMAGE_FILER_UPLOAD_ROOT = getattr(settings,'IMAGE_FILER_UPLOAD_ROOT', 'catalogue')
 
@@ -487,7 +488,9 @@ class DummyFolder(object):
         r = {}
         if getattr(self, '_icon', False):
             for size in DEFAULT_ICON_SIZES:
-                r[size] = "%simage_filer/icons/%s_%sx%s.png" % (settings.MEDIA_URL, self._icon, size, size)
+                r[size] = "%simage_filer/icons/%s_%sx%s.png" % \
+                    (context_processors.media(None)['IMAGE_FILER_MEDIA_URL'],
+                     self._icon, size, size)
         return r
 
 DEFAULT_ICON_SIZES = (

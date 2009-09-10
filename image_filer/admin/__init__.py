@@ -91,7 +91,7 @@ class ImageAdmin(PrimitivePermissionAwareModelAdmin):
             settings.MEDIA_URL + 'image_filer/js/focal_point.js',
         )
     def admin_thumbnail(self,xs):
-        return mark_safe('<img src="/media/image_filer/icons/plainfolder_32x32.png" alt="Folder Icon" />')
+        return mark_safe('<img src="{{ IMAGE_FILER_MEDIA_URL }}icons/plainfolder_32x32.png" alt="Folder Icon" />')
     admin_thumbnail.allow_tags = True
     def response_change(self, request, obj):
         '''
@@ -253,7 +253,7 @@ class FolderAdmin(PrimitivePermissionAwareModelAdmin):
             return HttpResponseRedirect(url)
         return r
     def icon_img(self,xs):
-        return mark_safe('<img src="/media/img/icons/plainfolder_32x32.png" alt="Folder Icon" />')
+        return mark_safe('<img src="{{ IMAGE_FILER_MEDIA_URL }}img/icons/plainfolder_32x32.png" alt="Folder Icon" />')
     icon_img.allow_tags = True
     
     def get_urls(self):

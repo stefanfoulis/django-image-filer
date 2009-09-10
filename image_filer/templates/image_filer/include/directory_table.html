@@ -17,7 +17,7 @@
                 <tr class="{% cycle rowcolors %}">
                 	<td></td>
 				    <!-- FileIcon -->
-				    <td><a href="{% url admin:image_filer-directory_listing subfolder.id %}{% if is_popup %}?_popup=1{% endif %}"><img src="/media/image_filer/icons/plainfolder_48x48.png" alt="Folder Icon" /></a></td>
+				    <td><a href="{% url admin:image_filer-directory_listing subfolder.id %}{% if is_popup %}?_popup=1{% endif %}"><img src="{{ IMAGE_FILER_MEDIA_URL }}icons/plainfolder_48x48.png" alt="Folder Icon" /></a></td>
 				    <!-- Filename/Dimensions -->
 				    <td>
 				    	{% if is_popup %}{% else %}<a style="display: block; float: right;" class="changelink" href="/admin/image_filer/folder/{{ subfolder.id }}">Change</a>{% endif %}
@@ -38,7 +38,7 @@
 				    	<div><b>{% if is_popup %}<a class="insertlink" href="" onclick="opener.dismissRelatedImageLookupPopup(window, {{ file.id }}, '{{ file.thumbnails.admin_tiny_icon|escapejs }}', '{{ file.label|escapejs }}'); return false;">{% else %}<a href="/admin/image_filer/image/{{ file.id }}/">{% endif %}{{ file.label }}</a></b></div>
 						<div><span class="tiny">{{ file.width }} x {{ file.height }} px ({{ file.size|filesize:"auto1000long" }})</span></div>
 						<div>owner: {{ file.owner }}</div>
-						{% if file.has_all_mandatory_data %}<div><img alt="0" src="/media/admin/img/admin/icon-yes.gif" /> has all mandatory metadata</div>{% else %}<div><img alt="1" src="/media/admin/img/admin/icon-no.gif"/> missing metadata!</div>{% endif %}
+						{% if file.has_all_mandatory_data %}<div><img alt="0" src="{{ IMAGE_FILER_MEDIA_URL }}admin/img/admin/icon-yes.gif" /> has all mandatory metadata</div>{% else %}<div><img alt="1" src="{{ ADMIN_MEDIA_PREFIX }}img/admin/icon-no.gif"/> missing metadata!</div>{% endif %}
 					</td>
 					<td style="text-align: right;">
 						<form action="{% url admin:image_filer-move_file_to_clipboard %}" method="post">

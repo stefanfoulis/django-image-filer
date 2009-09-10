@@ -210,10 +210,10 @@ def ajax_upload(request, folder_id=None):
     #print request.POST
     # flashcookie-hack (flash does not submit the cookie, so we send the
     # django sessionid over regular post
+
     engine = __import__(settings.SESSION_ENGINE, {}, {}, [''])
     #session_key = request.POST.get('jsessionid')
-    # this sucks... session key in get!
-    session_key = request.GET.get('jsessionid')
+    session_key = request.POST.get('jsessionid')
     request.session = engine.SessionStore(session_key)
     request.user = User.objects.get(id=request.session['_auth_user_id'])
     #print request.session['_auth_user_id']

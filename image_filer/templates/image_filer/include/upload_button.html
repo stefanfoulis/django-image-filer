@@ -1,37 +1,52 @@
 {% load i18n admin_modify adminmedia %}
 
-{# <input type="file" name="fileInput" id="fileInput" /> #}
-{% comment %}
-<a href="#" class="addlink" style="padding: 0;height: 14px;width:50px;padding-left;position: relative;">
-	<div style="position: absolute;top: 0;left: 0;padding:0.1em 14px 0.1em 8px;">upload</div>
-	<span id="fileInput" style=""></span>
-	<div style="clear:both;"></div>
-</a>
-{% endcomment %}
-<a href="" id="fileUploadFakeLink" class="addlink">{% trans "Upload" %}<div id="fileInputUploaderContainer"><span id="fileInput" style=""></span></div></a>
-<script type="text/javascript">
+<div style="margin-left: -9px;"><span id="spanButtonPlaceHolder"></span></div>
+
+<script type="text/javascript"><!--
 $(document).ready(function() {
-	$('#fileInput').fileUpload ({
-		'uploader'  : '{{ MEDIA_URL }}image_filer/js/jquery.uploadify-v1.6.2/uploader.swf',
-		'script'    : '{% url admin:image_filer-ajax_upload %}',
-		'cancelImg' : '{{ MEDIA_URL }}image_filer/img/close.gif',
-		'hideButton': true,
-		'auto'      : true,
-		'folder'    : '',
-		'multi'		: true,
-		'buttonText': 'upload',
-		'width'		: '100',
-		'height'	: 16,
-		'wmode'		: 'transparent',
-		'simUploadLimit': 3,
-		'scriptData':{'stuff':'there','jsessionid':$.cookie('sessionid')},
-		'onAllComplete': function() {
-				setTimeout(closeTheWindow(),1000);
-			}
-	});
-});
-function closeTheWindow() {
-	//alert('going to close the window...');
-	opener.dismissPopupAndReload(window);
-};
-</script>
+            var settings = {
+                flash_url : "{{ IMAGE_FILER_MEDIA_URL }}flash/swfupload.swf",
+                upload_url: "http://localhost:8000{% url admin:image_filer-ajax_upload %}",
+                post_params: {'jsessionid':$.cookie('sessionid')},
+                file_size_limit : "100 MB",
+                file_types : "*.*",
+                file_types_description : "All Files",
+                file_upload_limit : 100,
+                file_queue_limit : 0,
+                custom_settings : {
+                    progressTarget : "fsUploadProgress",
+                    cancelButtonId : "btnCancel"
+                },
+                debug: false,
+
+                // Button settings
+                button_image_url: "{{ IMAGE_FILER_MEDIA_URL }}img/upload_button.png",
+                button_width: "79",
+                button_height: "16",
+                button_placeholder_id: "spanButtonPlaceHolder",
+                button_text: '<span class="theFont"></span>',
+                button_text_style: ".theFont { font-size: 16; }",
+                button_text_left_padding: 12,
+                button_text_top_padding: 3,
+                
+                // The event handler functions are defined in handlers.js
+//                file_queued_handler : fileQueued,
+//               file_queue_error_handler : fileQueueError,
+                file_dialog_complete_handler : function() {
+                	this.startUpload();
+                    },
+//                upload_start_handler : uploadStart,
+//                upload_progress_handler : uploadProgress,
+                upload_error_handler : function() {
+                        alert("Upload failed.");
+                    },
+//                upload_success_handler : uploadSuccess,
+                upload_complete_handler : function() {
+                        window.location.reload();
+                },
+//                queue_complete_handler : ,  // Queue plugin event
+            };
+
+            swfu = new SWFUpload(settings);
+         });
+--></script>

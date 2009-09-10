@@ -3,7 +3,7 @@
 
 <tr class="{% cycle rowcolors %}">
     <!-- FileIcon -->
-    <td><img src="/media/img/icons/plainfolder_32x32.png" alt="Folder Icon" /></td>
+    <td><img src="{{ IMAGE_FILER_MEDIA_URL }}img/icons/plainfolder_32x32.png" alt="Folder Icon" /></td>
     <!-- Filename/Dimensions -->
     {% ifequal file.file_type 'Folder' %}
     <td><b><a href="{% url admin:image_filer-directory_listing file.id %}">{{ file.name }}</a></b></td>
