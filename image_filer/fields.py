@@ -60,7 +60,8 @@ class ImageFilerImageWidget(ForeignKeyRawIdWidget):
         return obj
     
     class Media:
-        js = (context_processors.media(None)['IMAGE_FILER_MEDIA_URL']+'js/image_widget_thumbnail.js')
+        js = (context_processors.media(None)['IMAGE_FILER_MEDIA_URL']+'js/image_widget_thumbnail.js',
+              context_processors.media(None)['IMAGE_FILER_MEDIA_URL']+'js/popup_handling.js',)
 
 class ImageFilerImageFormField(forms.ModelChoiceField):
     widget = ImageFilerImageWidget 
