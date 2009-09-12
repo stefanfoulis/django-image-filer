@@ -24,6 +24,8 @@ class NewFolderForm(forms.ModelForm):
 
 def popup_status(request):
     return request.REQUEST.has_key('_popup') or request.REQUEST.has_key('pop')
+def selectfolder_status(request):
+    return request.REQUEST.has_key('select_folder')
 def popup_param(request):
     if popup_status(request):
         return "?_popup=1"
@@ -131,6 +133,7 @@ def directory_listing(request, folder_id=None, viewtype=None):
             'show_result_count': show_result_count,
             'limit_search_to_folder': limit_search_to_folder,
             'is_popup': popup_status(request),
+            'select_folder': popup_status(request),
             'root_path': "/%s" % admin.site.root_path, # needed in the admin/base.html template for logout links and stuff 
         }, context_instance=RequestContext(request))
 

@@ -10,7 +10,8 @@ from django.utils.translation import ugettext_lazy as _
 from datetime import datetime, date
 from image_filer.utils import EXIF
 from sorl.thumbnail import fields as thumbnail_fields
-from image_filer.fields import ImageFilerModelImageField
+from image_filer.fields import ImageFilerModelImageField, \
+    ImageFilerModelFolderField
 
 from managers import FolderManager
 from django.db.models.signals import post_init
@@ -590,3 +591,13 @@ if 'cms' in settings.INSTALLED_APPS:
         def __unicode__(self):
             return self.title
     
+    class FolderPublication(CMSPlugin):
+        folder = ImageFilerModelFolderField()
+        class Meta:
+            db_table = 'cmsplugin_imagefolder'
+ 
+        
+    if 'reversion' in settings.INSTALLED_APPS:       
+        import reversion 
+        reversion.register(ImagePublication, follow=["cmsplugin_ptr"])
+        reversion.register(FolderPublication, follow=["cmsplugin_ptr"])

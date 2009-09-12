@@ -15,7 +15,7 @@
             <tbody>
             {% for subfolder in folder_children %}
                 <tr class="{% cycle rowcolors %}">
-                	<td></td>
+                	<td>{% if select_folder %}<a class="insertlink insertlinkButton" href="" onclick="opener.dismissRelatedFolderLookupPopup(window, {{ subfolder.id }}, '{{ subfolder.name }}'); return false;">{% trans "insert" %}</a>{% endif %}</td>
 				    <!-- FileIcon -->
 				    <td><a href="{% url admin:image_filer-directory_listing subfolder.id %}{% if is_popup %}?_popup=1{% endif %}"><img src="{{ IMAGE_FILER_MEDIA_URL }}icons/plainfolder_48x48.png" alt="Folder Icon" /></a></td>
 				    <!-- Filename/Dimensions -->
@@ -29,9 +29,9 @@
             {% endfor %}
 			{% for file in folder_files %}
                 <tr class="{% cycle rowcolors %}">
-                	<td>{% if is_popup %}<a class="insertlink insertlinkButton" href="" onclick="opener.dismissRelatedImageLookupPopup(window, {{ file.id }}, '{{ file.thumbnails.admin_tiny_icon|escapejs }}', '{{ file.label|escapejs }}'); return false;">{% trans "insert" %}</a>{% endif %}</td>
+                	<td></td>
 				    <!-- FileIcon -->
-					<td>{% if is_popup %}<a class="insertlink" href="" onclick="opener.dismissRelatedImageLookupPopup(window, {{ file.id }}, '{{ file.thumbnails.admin_tiny_icon|escapejs }}', '{{ file.label|escapejs }}'); return false;">{% else %}<a href="/admin/image_filer/image/{{ file.id }}/">{% endif %}<img src="{{ file.thumbnails.admin_directory_listing_icon }}" alt="{{ file.default_alt_text }}" /></a></td>
+					<td>{% if is_popup and not select_folder %}<a class="insertlink" href="" onclick="opener.dismissRelatedImageLookupPopup(window, {{ file.id }}, '{{ file.thumbnails.admin_tiny_icon|escapejs }}', '{{ file.label|escapejs }}'); return false;">{% else %}<a href="/admin/image_filer/image/{{ file.id }}/">{% endif %}<img src="{{ file.thumbnails.admin_directory_listing_icon }}" alt="{{ file.default_alt_text }}" /></a></td>
 				    <!-- Filename/Dimensions -->
 				    <td>
 				    	{% if not is_popup %}<a style="display: block; float: right;" class="changelink" href="/admin/image_filer/image/{{ file.id }}">Change</a>{% endif %}

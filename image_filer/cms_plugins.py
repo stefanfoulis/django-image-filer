@@ -1,7 +1,7 @@
 from cms.plugin_pool import plugin_pool
 from cms.plugin_base import CMSPluginBase
 from django.utils.translation import ugettext_lazy as _
-from image_filer.models import ImagePublication, ImageFilerTeaser
+from image_filer.models import ImagePublication, ImageFilerTeaser, FolderPublication
 
 class ImagePlugin(CMSPluginBase):
     model = ImagePublication
@@ -46,3 +46,17 @@ class ImageFilerTeaserPlugin(CMSPluginBase):
         })
         return context
 plugin_pool.register_plugin(ImageFilerTeaserPlugin)
+
+class ImageFolderPlugin(CMSPluginBase):
+    model = FolderPublication
+    name = _("Image Folder from Filer")
+    render_template = "image_filer/folder.html"
+    text_enabled = True
+    #change_form_template = 'admin/image_filer/cms/image_plugin/change_form.html'
+    raw_id_fields = ('folder',)
+    
+    def render(self, context, instance, placeholder):
+        return {'image_folder_publication':instance, 'placeholder':placeholder}
+    def icon_src(self, instance):
+        return "(none)"
+plugin_pool.register_plugin(ImageFolderPlugin)
