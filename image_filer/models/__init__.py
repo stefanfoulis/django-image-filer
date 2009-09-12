@@ -553,6 +553,13 @@ if 'cms' in settings.INSTALLED_APPS:
         
         show_author = models.BooleanField(default=False)
         show_copyright = models.BooleanField(default=False)
+
+        def save(self, *args, **kwargs):
+            # default the publication's size to the image size
+            if self.image and not self.width and not self.height:
+                self.width = self.image.width
+                self.height = self.image.height
+            super(ImagePublication, self).save(*args, **kwargs)
         
         def scaled_image_url(self):
             h = self.height or 128
