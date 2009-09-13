@@ -56,7 +56,15 @@ class ImageFolderPlugin(CMSPluginBase):
     raw_id_fields = ('folder',)
     
     def render(self, context, instance, placeholder):
-        return {'image_folder_publication':instance, 'placeholder':placeholder}
+        context.dicts.append({'image_folder_publication':instance, 'placeholder':placeholder})
+        return context
     def icon_src(self, instance):
         return "(none)"
 plugin_pool.register_plugin(ImageFolderPlugin)
+
+class FolderSlideshowPlugin(ImageFolderPlugin):
+    name = _("Slideshow of image folder")
+    class Meta:
+        proxy = True
+    render_template = "image_filer/slideshow2.html"
+plugin_pool.register_plugin(FolderSlideshowPlugin)
