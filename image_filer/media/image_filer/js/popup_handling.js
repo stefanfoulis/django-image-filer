@@ -15,7 +15,6 @@ function dismissRelatedImageLookupPopup(win, chosenId, chosenThumbnailUrl, chose
 function dismissRelatedFolderLookupPopup(win, chosenId, chosenName) {
     var id = windowname_to_id(win.name);
     var id_name = id + '_name';
-    alert(id_name);
     document.getElementById(id).value = chosenId;
     document.getElementById(id_name).innerHTML = chosenName;
     win.close();
