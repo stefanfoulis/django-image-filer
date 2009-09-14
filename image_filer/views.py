@@ -133,7 +133,7 @@ def directory_listing(request, folder_id=None, viewtype=None):
             'show_result_count': show_result_count,
             'limit_search_to_folder': limit_search_to_folder,
             'is_popup': popup_status(request),
-            'select_folder': popup_status(request),
+            'select_folder': selectfolder_status(request),
             'root_path': "/%s" % admin.site.root_path, # needed in the admin/base.html template for logout links and stuff 
         }, context_instance=RequestContext(request))
 
