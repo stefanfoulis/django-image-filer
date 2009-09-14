@@ -2,19 +2,6 @@
 <script type="text/javascript" src="{{ IMAGE_FILER_MEDIA_URL }}slideshow2/js/mootools.js"></script>
 <script type="text/javascript" src="{{ IMAGE_FILER_MEDIA_URL }}slideshow2/js/slideshow.js"></script>
 <link rel="stylesheet" type="text/css" href="{{ IMAGE_FILER_MEDIA_URL }}slideshow2/css/slideshow.css" />
-<style type="text/css">
-    .slideshow-thumbnails {
-        height: 300px;
-        left: auto;
-        right: -80px;
-        top: 0;
-        width: 70px;
-    }
-    .slideshow-thumbnails ul {
-        height: 500px;
-        width: 70px;
-    }    
-</style>
 {% endblock %}
 <div id="slideshow" class="slideshow">
 </div>
@@ -24,17 +11,13 @@
             '{{file.file.url}}': {'thumbnail': '{{file.thumbnails.admin_directory_listing_icon}}' },
             {% endfor %}
     };
+    {# For details see http://code.google.com/p/slideshow/wiki/Slideshow #}
     var options = {
             'controller': true,
-            'delay': 4500,
-            'duration': 500,
             'fast': true,
-            'loader': true,
             'thumbnails': { 'animate': ['../css/loader-#.png', 12] },
-            'width': 500,
-            'height': 300,
             'preload': true,
-            'resize': false,
+            'resize': 'length',
     };
     var myShow = new Slideshow("slideshow", data, options);
 </script>

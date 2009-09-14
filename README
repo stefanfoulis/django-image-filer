@@ -18,3 +18,23 @@ Setup
   default)
 
 
+Custom plugins using image folders
+==================================
+To customize a slideshow as shown in cms_plugins.FolderSlideshowPlugin, just do
+the following in your own project:
+
+- create a file 'cms_plugins.py' in your application root (where models.py resides):
+
+        from cms.plugin_pool import plugin_pool
+        from django.utils.translation import ugettext_lazy as _
+        from image_filer.cms_plugins import FolderSlideshowPlugin
+        
+        class CustomSlideshowPlugin(FolderSlideshowPlugin):
+            name = _("Custom slideshow")
+            class Meta:
+                proxy = True
+            render_template = "slideshow.html"
+        plugin_pool.register_plugin(CustomSlideshowPlugin)
+
+- create an appropriate 'templates/slideshow.html' relative to your application's
+  root (look at 'image_filer/slideshow2.html' for guidance)
