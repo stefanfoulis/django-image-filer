@@ -23,6 +23,10 @@ from django.contrib.auth import models as auth_models
 
 from django.conf import settings
 
+
+from image_filer.models.safe_file_storage import SafeFilenameFileSystemStorage
+fs = SafeFilenameFileSystemStorage()
+
 '''
 # remove the uuid stuff for now
 try:
@@ -181,7 +185,7 @@ class Image(AbstractFile):
     file_type = 'image'
     file = thumbnail_fields.ImageWithThumbnailsField(
                     upload_to='catalogue',
-                    #storage=uuid_file_system_storage,
+                    storage=fs,
                     height_field='_height_field', width_field='_width_field', 
                     thumbnail={'size': (50, 50)},
                     extra_thumbnails={
