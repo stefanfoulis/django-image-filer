@@ -1,5 +1,0 @@
--e svn+http://code.djangoproject.com/svn/django/trunk@10913#egg=Django-1.1_beta_1-py2.5-dev
--e svn+http://svn.aeracode.org/svn/south/trunk@260#egg=South-0.5.1-py2.5-dev
--e svn+http://django-mptt.googlecode.com/svn/trunk@119#egg=django_mptt-0.3_pre-py2.5-dev
--e svn+http://sorl-thumbnail.googlecode.com/svn/trunk@446#egg=sorl-3.1-py2.5-dev
-wsgiref==0.1.2

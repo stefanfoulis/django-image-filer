@@ -15,13 +15,3 @@ Setup
 - make image_filer/media/image_filer available in MEDIA_ROOT
 
 
-To use the example project virtualenv and pip can be used to setup a test environment:
- - mkdir example/virtualenv
- - virtualenv example/virtualenv/image_filer
- - pip -E example/virtualenv/image_filer install -r requirements.pip
- 	- now you will have a virtualenv with mptt, sorl, south and django installed
- - symlink or checkout the other dependencies into the virtualenv (example/virtualenv/image_filer/lib/python2.5/site-packages/)
- - source example/virtualenv/image_filer/bin/activate
- 	- now the virtualenv is active... and syncdb/runserver can be run with ./manage.py
-
-
