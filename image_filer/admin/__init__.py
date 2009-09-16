@@ -35,20 +35,39 @@ class PrimitivePermissionAwareModelAdmin(admin.ModelAdmin):
         # we don't have a specific delete permission... so we use change
         return self.has_change_permission(request, obj)
 
+class ImageAdminFrom(forms.ModelForm):
+    subject_location = forms.CharField(max_length=64, required=False)
+    
+    def sidebar_image_ratio(self):
+        print "hello"
+        if self.instance:
+            return self.instance.sidebar_image_ratio()
+        else:
+            return 0.0
+    
+    class Meta:
+        model = Image
 
 class ImageAdmin(PrimitivePermissionAwareModelAdmin):
     list_display = ('label',)
     list_per_page = 10
     search_fields = ['name', 'original_filename','default_alt_text','default_caption','usage_restriction_notes','notes', 'author']
     raw_id_fields = ('contact', 'owner',)
+    
     # save_as hack, because without save_as it is impossible to hide the 
     # save_and_add_another if save_as is False.
     # To show only save_and_continue and save in the submit row we need save_as=True
     # and in render_change_form() override add and change to False.
     save_as=True
+    
+    form = ImageAdminFrom
     fieldsets = (
         (None, {
-            'fields': ('name', 'contact', 'owner', )
+            'fields': ('name', 'contact', 'owner',)
+        }),
+        (None, {
+            'fields': ('subject_location',),
+            'classes': ('hide',),
         }),
         ('Copyright and Author', {
             #'classes': ('collapse',),
@@ -63,6 +82,15 @@ class ImageAdmin(PrimitivePermissionAwareModelAdmin):
         #    'fields': ('manipulation_profile', )
         #}),
     )
+    class Media:
+        css = {
+            'all': (settings.MEDIA_URL + 'image_filer/css/focal_point.css',)
+        }
+        js = (
+            settings.MEDIA_URL + 'image_filer/js/jquery-1.3.2.min.js',
+            settings.MEDIA_URL + 'image_filer/js/raphael.js',
+            settings.MEDIA_URL + 'image_filer/js/focal_point.js',
+        )
     def admin_thumbnail(self,xs):
         return mark_safe('<img src="/media/image_filer/icons/plainfolder_32x32.png" alt="Folder Icon" />')
     admin_thumbnail.allow_tags = True
@@ -72,7 +100,7 @@ class ImageAdmin(PrimitivePermissionAwareModelAdmin):
         instead of the default change_list_view
         '''
         r = super(ImageAdmin, self).response_change(request, obj)
-        print r['Location']
+        #print r['Location']
         if r['Location']:
             # it was a successful save
             if r['Location'] in ['../']:

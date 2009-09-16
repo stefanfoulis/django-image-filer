@@ -17,20 +17,13 @@
 {% block sidebar %}
 <div id="content-related">
     <div id="navcontainer">
-    	<a href="{{ original.file.url }}"><img src="{{ original.thumbnails.admin_sidebar_preview }}" alt="{{ original.label }}" /></a>
-        <ul id="navlist">
-            <li>original filename: {{ original.original_filename }}</li>
-            {% ifequal form.data.is_shareholder 1 %}
-            <li><a href="/admin/manager/shareholders/{{ form.data.id }}/">Show shareholder data for {{ form.data.id }}</a></li>
-            {% endifequal %}
-			{% if original.children.all %}
-			<li>Children:
-				<ul>{% for image_child in original.children.all %}
-					<li>{{ image_child.admin_thumbnail|safe }}{{ image_child.label }}</li>{% endfor %}
-				</ul>
-			</li>
-			{% endif %}
-        </ul>
+		<div id="image_container">
+			<img src="{{ original.thumbnails.admin_sidebar_preview }}" alt="{{ original.label }}" rel="{{ adminform.form.sidebar_image_ratio }}" />
+			<div id="paper">&nbsp;</div>
+		</div>
+		<h4>{% trans 'Set focal point'%}</h4>
+
+		<a href="{{ original.file.url }}">full size</a>
     </div>
 </div>
 {% endblock %}

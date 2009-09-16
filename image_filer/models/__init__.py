@@ -5,23 +5,23 @@ from django.db.models import Q
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes import generic
 from django.core.files.storage import FileSystemStorage
+from django.core.files.base import File, ContentFile
 from django.utils.translation import ugettext_lazy as _
 from datetime import datetime, date
 from image_filer.utils import EXIF
 from sorl.thumbnail import fields as thumbnail_fields
-#from sorl.thumbnail.fields import ImageWithThumbnailsField
 from image_filer.fields import ImageFilerModelImageField
-# hack, so admin filters get loaded
-#from image_filer.admin import filters as admin_filters
 
 from managers import FolderManager
 from django.db.models.signals import post_init
 from django.utils.functional import curry
 from django.core.urlresolvers import reverse
 
+
 from django.contrib.auth import models as auth_models
 
 from django.conf import settings
+from image_filer.utils.pil_exif import get_exif_for_file, set_exif_subject_location
 
 
 from image_filer.models.safe_file_storage import SafeFilenameFileSystemStorage
@@ -181,7 +181,9 @@ try:
 except mptt.AlreadyRegistered:
     pass
 
+
 class Image(AbstractFile):
+    SIDEBAR_IMAGE_WIDTH = 210
     file_type = 'image'
     file = thumbnail_fields.ImageWithThumbnailsField(
                     upload_to='catalogue',
@@ -190,7 +192,7 @@ class Image(AbstractFile):
                     thumbnail={'size': (50, 50)},
                     extra_thumbnails={
                         'admin_clipboard_icon': {'size': (32,32), 'options': ['crop','upscale']},
-                        'admin_sidebar_preview': {'size': (210,210), 'options': ['crop',]},
+                        'admin_sidebar_preview': {'size': (SIDEBAR_IMAGE_WIDTH,SIDEBAR_IMAGE_WIDTH), 'options': []},
                         'admin_directory_listing_icon': {'size': (48,48), 'options': ['crop','upscale']},
                         'admin_tiny_icon': {'size': (32,32), 'options': ['crop','upscale']},
                     },
@@ -222,15 +224,21 @@ class Image(AbstractFile):
     
     has_all_mandatory_data = models.BooleanField(default=False, editable=False)
     
+    subject_location = models.CharField(max_length=64, null=True, blank=True, default=None)
+    
     def _check_validity(self):
         if not self.name or not self.contact:
             return False
         return True
-    
+    def sidebar_image_ratio(self):
+        if self.width:
+            return float(self.width)/float(self.SIDEBAR_IMAGE_WIDTH)
+        else:
+            return 1.0
     def save(self, *args, **kwargs):
         if self.date_taken is None:
             try:
-                exif_date = self.EXIF.get('EXIF DateTimeOriginal',None)
+                exif_date = self.exif.get('DateTimeOriginal',None)
                 if exif_date is not None:
                     d, t = str.split(exif_date.values)
                     year, month, day = d.split(':')
@@ -244,7 +252,35 @@ class Image(AbstractFile):
         if not self.contact:
             self.contact = self.owner
         self.has_all_mandatory_data = self._check_validity()
+        if self.subject_location:
+            parts = self.subject_location.split(',')
+            '''
+            ratio = float(self.file.width)/float(SIDEBAR_IMAGE_WIDTH)
+            pos_x = float(parts[0])*ratio
+            pos_y = float(parts[1])*ratio
+            '''
+            pos_x = int(parts[0])
+            pos_y = int(parts[1])
+                                              
+            sl = (int(pos_x), int(pos_y) )
+            exif_sl = self.exif.get('SubjectLocation', None)
+            if self.file and not sl == exif_sl:
+                self.file.open()
+                old_file = self.file.read()
+                self.file.close()
+                set_exif_subject_location(sl, old_file, self.file.path)
+                
         super(Image, self).save(*args, **kwargs)
+    def _get_exif(self):
+        if hasattr(self, '_exif_cache'):
+            return self._exif_cache
+        else:
+            if self.file:
+                self._exif_cache = get_exif_for_file(self.file.path)
+                return self._exif_cache
+            else:
+                return {}
+    exif = property(_get_exif)
     def has_edit_permission(self, request):
         return self.has_generic_permission(request, 'edit')
     def has_read_permission(self, request):
