@@ -10,12 +10,20 @@ class Migration:
         # Adding field 'Image.subject_location'
         db.add_column('image_filer_image', 'subject_location', orm['image_filer.image:subject_location'])
         
+        # Changing field 'Image.file'
+        # (to signature: thumbnail_fields.ImageWithThumbnailsField(storage=fs, width_field='_width_field', height_field='_height_field', extra_thumbnails={'admin_clipboard_icon':{'size':(32,32),'options':['crop','upscale']},'admin_sidebar_preview':{'size':(SIDEBAR_IMAGE_WIDTH,SIDEBAR_IMAGE_WIDTH),'options':[]},'admin_directory_listing_icon':{'size':(48,48),'options':['crop','upscale']},'admin_tiny_icon':{'size':(32,32),'options':['crop','upscale']},}, max_length=255, blank=True, null=True, thumbnail={'size':(50,50)}))
+        db.alter_column('image_filer_image', 'file', orm['image_filer.image:file'])
+        
     
     
     def backwards(self, orm):
         
         # Deleting field 'Image.subject_location'
         db.delete_column('image_filer_image', 'subject_location')
+        
+        # Changing field 'Image.file'
+        # (to signature: django.db.models.fields.files.ImageField(max_length=100, null=True, blank=True))
+        db.alter_column('image_filer_image', 'file', orm['image_filer.image:file'])
         
     
     
@@ -146,7 +154,7 @@ class Migration:
             'date_taken': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'}),
             'default_alt_text': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True', 'blank': 'True'}),
             'default_caption': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True', 'blank': 'True'}),
-            'file': ('django.db.models.fields.files.ImageField', [], {'max_length': '100', 'null': 'True', 'blank': 'True'}),
+            'file': ('thumbnail_fields.ImageWithThumbnailsField', [], {'storage': 'fs', 'width_field': "'_width_field'", 'height_field': "'_height_field'", 'extra_thumbnails': "{'admin_clipboard_icon':{'size':(32,32),'options':['crop','upscale']},'admin_sidebar_preview':{'size':(SIDEBAR_IMAGE_WIDTH,SIDEBAR_IMAGE_WIDTH),'options':[]},'admin_directory_listing_icon':{'size':(48,48),'options':['crop','upscale']},'admin_tiny_icon':{'size':(32,32),'options':['crop','upscale']},}", 'max_length': '255', 'blank': 'True', 'null': 'True', 'thumbnail': "{'size':(50,50)}"}),
             'folder': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'image_files'", 'null': 'True', 'to': "orm['image_filer.Folder']"}),
             'has_all_mandatory_data': ('django.db.models.fields.BooleanField', [], {'default': 'False', 'blank': 'True'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
