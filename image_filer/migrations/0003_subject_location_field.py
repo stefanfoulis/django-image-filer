@@ -7,172 +7,15 @@ class Migration:
     
     def forwards(self, orm):
         
-        # Adding model 'ImagePublication'
-        db.create_table('cmsplugin_filer', (
-            ('cmsplugin_ptr', orm['image_filer.imagepublication:cmsplugin_ptr']),
-            ('image', orm['image_filer.imagepublication:image']),
-            ('alt_text', orm['image_filer.imagepublication:alt_text']),
-            ('caption', orm['image_filer.imagepublication:caption']),
-            ('width', orm['image_filer.imagepublication:width']),
-            ('height', orm['image_filer.imagepublication:height']),
-            ('show_author', orm['image_filer.imagepublication:show_author']),
-            ('show_copyright', orm['image_filer.imagepublication:show_copyright']),
-        ))
-        db.send_create_signal('image_filer', ['ImagePublication'])
-        
-        # Adding model 'ClipboardItem'
-        db.create_table('image_filer_clipboarditem', (
-            ('id', orm['image_filer.clipboarditem:id']),
-            ('file', orm['image_filer.clipboarditem:file']),
-            ('clipboard', orm['image_filer.clipboarditem:clipboard']),
-            ('is_checked', orm['image_filer.clipboarditem:is_checked']),
-        ))
-        db.send_create_signal('image_filer', ['ClipboardItem'])
-        
-        # Adding model 'Clipboard'
-        db.create_table('image_filer_clipboard', (
-            ('id', orm['image_filer.clipboard:id']),
-            ('user', orm['image_filer.clipboard:user']),
-        ))
-        db.send_create_signal('image_filer', ['Clipboard'])
-        
-        # Deleting field 'Image.tree_id'
-        db.delete_column('image_filer_image', 'tree_id')
-        
-        # Deleting field 'Image.lft'
-        db.delete_column('image_filer_image', 'lft')
-        
-        # Deleting field 'Image.manipulation_profile'
-        db.delete_column('image_filer_image', 'manipulation_profile_id')
-        
-        # Deleting field 'Image.level'
-        db.delete_column('image_filer_image', 'level')
-        
-        # Deleting field 'Image.parent'
-        db.delete_column('image_filer_image', 'parent_id')
-        
-        # Deleting field 'Image.rght'
-        db.delete_column('image_filer_image', 'rght')
-        
-        # Deleting model 'imagemanipulationtemplate'
-        db.delete_table('image_filer_imagemanipulationtemplate')
-        
-        # Deleting model 'bucket'
-        db.delete_table('image_filer_bucket')
-        
-        # Deleting model 'bucketitem'
-        db.delete_table('image_filer_bucketitem')
-        
-        # Deleting model 'imagemanipulationstep'
-        db.delete_table('image_filer_imagemanipulationstep')
-        
-        # Deleting model 'imagemanipulationprofile'
-        db.delete_table('image_filer_imagemanipulationprofile')
-        
-        # Deleting model 'imagepermission'
-        db.delete_table('image_filer_imagepermission')
-        
-        # Changing field 'FolderPermission.can_read'
-        # (to signature: django.db.models.fields.BooleanField(default=True, blank=True))
-        db.alter_column('image_filer_folderpermission', 'can_read', orm['image_filer.folderpermission:can_read'])
+        # Adding field 'Image.subject_location'
+        db.add_column('image_filer_image', 'subject_location', orm['image_filer.image:subject_location'])
         
     
     
     def backwards(self, orm):
         
-        # Deleting model 'ImagePublication'
-        db.delete_table('cmsplugin_filer')
-        
-        # Deleting model 'ClipboardItem'
-        db.delete_table('image_filer_clipboarditem')
-        
-        # Deleting model 'Clipboard'
-        db.delete_table('image_filer_clipboard')
-        
-        # Adding field 'Image.tree_id'
-        db.add_column('image_filer_image', 'tree_id', orm['image_filer.image:tree_id'])
-        
-        # Adding field 'Image.lft'
-        db.add_column('image_filer_image', 'lft', orm['image_filer.image:lft'])
-        
-        # Adding field 'Image.manipulation_profile'
-        db.add_column('image_filer_image', 'manipulation_profile', orm['image_filer.image:manipulation_profile'])
-        
-        # Adding field 'Image.level'
-        db.add_column('image_filer_image', 'level', orm['image_filer.image:level'])
-        
-        # Adding field 'Image.parent'
-        db.add_column('image_filer_image', 'parent', orm['image_filer.image:parent'])
-        
-        # Adding field 'Image.rght'
-        db.add_column('image_filer_image', 'rght', orm['image_filer.image:rght'])
-        
-        # Adding model 'imagemanipulationtemplate'
-        db.create_table('image_filer_imagemanipulationtemplate', (
-            ('profile', orm['image_filer.image:profile']),
-            ('description', orm['image_filer.image:description']),
-            ('pre_cache', orm['image_filer.image:pre_cache']),
-            ('identifier', orm['image_filer.image:identifier']),
-            ('id', orm['image_filer.image:id']),
-            ('name', orm['image_filer.image:name']),
-        ))
-        db.send_create_signal('image_filer', ['imagemanipulationtemplate'])
-        
-        # Adding model 'bucket'
-        db.create_table('image_filer_bucket', (
-            ('files', orm['image_filer.image:files']),
-            ('id', orm['image_filer.image:id']),
-            ('user', orm['image_filer.image:user']),
-        ))
-        db.send_create_signal('image_filer', ['bucket'])
-        
-        # Adding model 'bucketitem'
-        db.create_table('image_filer_bucketitem', (
-            ('is_checked', orm['image_filer.image:is_checked']),
-            ('bucket', orm['image_filer.image:bucket']),
-            ('id', orm['image_filer.image:id']),
-            ('file', orm['image_filer.image:file']),
-        ))
-        db.send_create_signal('image_filer', ['bucketitem'])
-        
-        # Adding model 'imagemanipulationstep'
-        db.create_table('image_filer_imagemanipulationstep', (
-            ('description', orm['image_filer.image:description']),
-            ('name', orm['image_filer.image:name']),
-            ('order', orm['image_filer.image:order']),
-            ('data', orm['image_filer.image:data']),
-            ('id', orm['image_filer.image:id']),
-            ('template', orm['image_filer.image:template']),
-            ('filter_identifier', orm['image_filer.image:filter_identifier']),
-        ))
-        db.send_create_signal('image_filer', ['imagemanipulationstep'])
-        
-        # Adding model 'imagemanipulationprofile'
-        db.create_table('image_filer_imagemanipulationprofile', (
-            ('show_in_library', orm['image_filer.image:show_in_library']),
-            ('description', orm['image_filer.image:description']),
-            ('name', orm['image_filer.image:name']),
-            ('id', orm['image_filer.image:id']),
-        ))
-        db.send_create_signal('image_filer', ['imagemanipulationprofile'])
-        
-        # Adding model 'imagepermission'
-        db.create_table('image_filer_imagepermission', (
-            ('can_add_children', orm['image_filer.image:can_add_children']),
-            ('can_edit', orm['image_filer.image:can_edit']),
-            ('group', orm['image_filer.image:group']),
-            ('user', orm['image_filer.image:user']),
-            ('can_read', orm['image_filer.image:can_read']),
-            ('image', orm['image_filer.image:image']),
-            ('type', orm['image_filer.image:type']),
-            ('id', orm['image_filer.image:id']),
-            ('everybody', orm['image_filer.image:everybody']),
-        ))
-        db.send_create_signal('image_filer', ['imagepermission'])
-        
-        # Changing field 'FolderPermission.can_read'
-        # (to signature: django.db.models.fields.BooleanField(default=False, blank=True))
-        db.alter_column('image_filer_folderpermission', 'can_read', orm['image_filer.folderpermission:can_read'])
+        # Deleting field 'Image.subject_location'
+        db.delete_column('image_filer_image', 'subject_location')
         
     
     
@@ -314,6 +157,7 @@ class Migration:
             'notes': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
             'original_filename': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True', 'blank': 'True'}),
             'owner': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'owned_images'", 'null': 'True', 'to': "orm['auth.User']"}),
+            'subject_location': ('django.db.models.fields.CharField', [], {'default': 'None', 'max_length': '64', 'null': 'True', 'blank': 'True'}),
             'uploaded_at': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
             'usage_restriction_notes': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'})
         },
