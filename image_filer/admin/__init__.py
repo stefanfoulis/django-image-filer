@@ -39,7 +39,6 @@ class ImageAdminFrom(forms.ModelForm):
     subject_location = forms.CharField(max_length=64, required=False)
     
     def sidebar_image_ratio(self):
-        print "hello"
         if self.instance:
             return self.instance.sidebar_image_ratio()
         else:

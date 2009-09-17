@@ -1,14 +1,6 @@
 $(function(){
-	var PAPER_WIDTH = $('#image_container img').width();
-	var PAPER_HEIGTH = $('#image_container img').height();
-	
-	$('#image_container').height(PAPER_HEIGTH + 'px');
-	
-	//  interface
-	var ratio = parseFloat($('#image_container img').attr('rel'));
-	
-	var paper = Raphael(document.getElementById("paper"), PAPER_WIDTH, PAPER_HEIGTH);
-	
+	var PAPER_WIDTH, PAPER_HEIGTH;
+	var paper, ratio;
 	var isDrag = false;
     var dragger = function (e) {
 		this.dx = e.clientX;
@@ -65,15 +57,24 @@ $(function(){
 		$("#id_subject_location").val(x === undefined ? '' : parseInt(parseInt(x)*ratio) + ',' + parseInt(parseInt(y)*ratio) );
 	}
 	
-	// read location from form
-	var location = $("#id_subject_location").val();
-	var x, y;
-	if (location){
-		x = parseInt(parseInt(location.split(',')[0])/ratio);
-		y = parseInt(parseInt(location.split(',')[1])/ratio);		
-	} 
-	console.log(x +" " +y);
-	add(x, y);
+	
+	$('#image_container img').load(function(){
+		PAPER_WIDTH = $('#image_container img').width();
+		PAPER_HEIGTH = $('#image_container img').height();
+		$('#image_container').height(PAPER_HEIGTH + 'px');
+		
+		//  interface
+		ratio = parseFloat($('#image_container img').attr('rel'));
+		paper = Raphael(document.getElementById("paper"), PAPER_WIDTH, PAPER_HEIGTH);	
+		// read location from form
+		var location = $("#id_subject_location").val();
+		var x, y;
+		if (location){
+			x = parseInt(parseInt(location.split(',')[0])/ratio);
+			y = parseInt(parseInt(location.split(',')[1])/ratio);		
+		}
+		add(x, y);
+	});
 });
 
 

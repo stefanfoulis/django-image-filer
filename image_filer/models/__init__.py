@@ -23,30 +23,11 @@ from django.contrib.auth import models as auth_models
 from django.conf import settings
 from image_filer.utils.pil_exif import get_exif_for_file, set_exif_subject_location
 
+IMAGE_FILER_UPLOAD_ROOT = getattr(settings,'IMAGE_FILER_UPLOAD_ROOT', 'catalogue')
 
 from image_filer.models.safe_file_storage import SafeFilenameFileSystemStorage
 fs = SafeFilenameFileSystemStorage()
 
-'''
-# remove the uuid stuff for now
-try:
-    import uuid
-except ImportError:
-    from django_extensions.utils import uuid
-
-class UUIDFileSystemStorage(FileSystemStorage):
-    def get_available_name(self, name):
-        newuuid = uuid.uuid4()
-        file_extension = name.split('.')[-1].lower()
-        r = '%s.%s' % (newuuid, file_extension)
-        return r
-CATALOGUE_BASE_URL = "".join([settings.MEDIA_URL, 'catalogue/'])
-CATALOGUE_BASE_PATH = os.path.abspath(os.path.join(settings.MEDIA_ROOT, 'catalogue/'))
-uuid_file_system_storage = UUIDFileSystemStorage( 
-                                location=CATALOGUE_BASE_PATH,
-                                base_url=CATALOGUE_BASE_URL
-                                )
-'''
 class AbstractFile(models.Model):
     """
     Represents a "File-ish" thing that is in a Folder. Any subclasses must
@@ -186,7 +167,7 @@ class Image(AbstractFile):
     SIDEBAR_IMAGE_WIDTH = 210
     file_type = 'image'
     file = thumbnail_fields.ImageWithThumbnailsField(
-                    upload_to='catalogue',
+                    upload_to=IMAGE_FILER_UPLOAD_ROOT,
                     storage=fs,
                     height_field='_height_field', width_field='_width_field', 
                     thumbnail={'size': (50, 50)},
@@ -196,7 +177,7 @@ class Image(AbstractFile):
                         'admin_directory_listing_icon': {'size': (48,48), 'options': ['crop','upscale']},
                         'admin_tiny_icon': {'size': (32,32), 'options': ['crop','upscale']},
                     },
-                    null=True, blank=True)
+                    null=True, blank=True,max_length=255)
     _height_field = models.IntegerField(null=True, blank=True) 
     _width_field = models.IntegerField(null=True, blank=True)
     
@@ -273,13 +254,16 @@ class Image(AbstractFile):
         super(Image, self).save(*args, **kwargs)
     def _get_exif(self):
         if hasattr(self, '_exif_cache'):
+            print "using exif cache"
             return self._exif_cache
         else:
             if self.file:
+                print "fetching exif (model)"
                 self._exif_cache = get_exif_for_file(self.file.path)
-                return self._exif_cache
+                print "    done fetching exif (model)"
             else:
-                return {}
+                self._exif_cache = {}
+        return self._exif_cache
     exif = property(_get_exif)
     def has_edit_permission(self, request):
         return self.has_generic_permission(request, 'edit')
@@ -309,18 +293,13 @@ class Image(AbstractFile):
             return self.original_filename or 'unnamed file'
         else:
             return self.name
+    label = property(label)
     @property
     def width(self):
-        try:
-            return self.file.width
-        except:
-            return 0
+        return self._width_field or 0
     @property
     def height(self):
-        try:
-            return self.file.height
-        except:
-            return 0
+        return self._height_field or 0
     @property
     def size(self):
         try:
@@ -332,14 +311,15 @@ class Image(AbstractFile):
         # we build an extra dict here mainly
         # to prevent the default errors to 
         # get thrown and to add a default missing
-        # image
+        # image (not yet)
         if not hasattr(self, '_thumbnails'):
             tns = {}
+            print "START: getting thumbnails"
             for name, tn in self.file.extra_thumbnails.items():
                 tns[name] = tn
             self._thumbnails = tns
+            print "END: getting thumbnails"
         return self._thumbnails
-    label = property(label)
     def __unicode__(self):
         return self.label
 
