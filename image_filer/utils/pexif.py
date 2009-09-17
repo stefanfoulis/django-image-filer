@@ -332,7 +332,6 @@ class IfdData:
             return self.__setattr__(key, value)
         found = 0
         if len(self.tags[key]) < 3:
-            print self.tags[key]
             raise Exception("Error: Tags aren't set up correctly, should have tag type.")
         if self.tags[key][2] == ASCII:
             if not value is None and not value.endswith('\0'):
@@ -980,10 +979,8 @@ class JpegFile:
         display functions).  You shouldn't use this function directly,
         but rather call one of the static methods fromFile, fromString
         or fromFd."""
-        print "BEGIN: JpegFile init (%s)"% filename
         self.filename = filename
         self.mode = mode
-        print "   [%s] read SOI_MARKER"% filename
         # input is the file descriptor
         soi_marker = input.read(len(SOI_MARKER))
 
@@ -994,7 +991,6 @@ class JpegFile:
 
         # Now go through and find all the blocks of data
         segments = []
-        print "   [%s] reading segments"% filename
         while 1:
             head = input.read(2)
             delim, mark  =  unpack(">BB", head)
@@ -1002,7 +998,6 @@ class JpegFile:
                 raise self.InvalidFile("Error, expecting delmiter. "\
                                        "Got <%s> should be <%s>" %
                                        (delim, DELIM))
-            print "   [%s]        reading %s mark"% (filename, mark)
             if mark == EOI:
                 # Hit end of image marker, game-over!
                 break
@@ -1016,7 +1011,6 @@ class JpegFile:
                 try:
                     # Note: Segment class may modify the input file 
                     # descriptor. This is expected.
-                    print "   [%s]            trying %s"% (filename, segment_class.__name__)
                     attempt = segment_class(mark, input, data, self.mode)
                     segments.append(attempt)
                     break

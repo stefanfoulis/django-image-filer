@@ -90,7 +90,6 @@ class Folder(models.Model):
         for attr in dir(self):
             if not attr.startswith('_') and attr.endswith('_files'):
                 # TODO: also check for fieldtype
-                #print attr
                 rel.append(getattr(self, attr))
         return rel
     
@@ -254,13 +253,10 @@ class Image(AbstractFile):
         super(Image, self).save(*args, **kwargs)
     def _get_exif(self):
         if hasattr(self, '_exif_cache'):
-            print "using exif cache"
             return self._exif_cache
         else:
             if self.file:
-                print "fetching exif (model)"
                 self._exif_cache = get_exif_for_file(self.file.path)
-                print "    done fetching exif (model)"
             else:
                 self._exif_cache = {}
         return self._exif_cache
@@ -314,11 +310,9 @@ class Image(AbstractFile):
         # image (not yet)
         if not hasattr(self, '_thumbnails'):
             tns = {}
-            print "START: getting thumbnails"
             for name, tn in self.file.extra_thumbnails.items():
                 tns[name] = tn
             self._thumbnails = tns
-            print "END: getting thumbnails"
         return self._thumbnails
     def __unicode__(self):
         return self.label
