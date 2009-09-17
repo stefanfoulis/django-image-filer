@@ -20,7 +20,6 @@ except ImportError:
 from image_filer.utils.pil_exif import get_exif, get_subject_location
         
 def scale_and_crop(im, requested_size, opts, subject_location=None):
-    print "== begin scale and crop"
     try:
         x, y   = [float(v) for v in im.size]
         xr, yr = [float(v) for v in requested_size]
@@ -77,15 +76,12 @@ def scale_and_crop(im, requested_size, opts, subject_location=None):
                     tfy = res_y
                 if ex or ey:
                     crop_box = ((int(tex), int(tey), int(tfx), int(tfy)))
-                    # test
-                    draw = ImageDraw.Draw(im)
-                    #draw.line((0, 0) + im.size, fill=128)
-                    #draw.line((0, im.size[1], im.size[0], 0), fill=128)
-                    esize = 20
-                    draw.ellipse( ( (subj_x-esize, subj_y-esize), (subj_x+esize, subj_y+esize)), outline="#FF0000" )
+                    # draw elipse on focal point for Debugging
+                    #draw = ImageDraw.Draw(im)
+                    #esize = 20
+                    #draw.ellipse( ( (subj_x-esize, subj_y-esize), (subj_x+esize, subj_y+esize)), outline="#FF0000" )
                     im = im.crop(crop_box)
     except Exception, e:
-        print "   exception %s" % e
-    print "== end scale and crop"
+        return im
     return im
 scale_and_crop.valid_options = ('crop', 'upscale', 'max')
