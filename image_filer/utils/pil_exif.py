@@ -34,7 +34,6 @@ def set_exif_subject_location(xy, fd_source, out_path):
     try:
         img = pexif.JpegFile.fromFd(fd_source)
     except pexif.JpegFile.InvalidFile, e:
-        print "reading exif failed"
         im = Image.open(fd_source)
         #new_file_without_exif = StringIO.StringIO()
         new_file_without_exif = StringIO.StringIO()
