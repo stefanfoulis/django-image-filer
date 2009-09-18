@@ -29,8 +29,17 @@ def get_subject_location(exif_data):
         r = None
     return r
 
-
-def set_exif_subject_location(xy, in_path, out_path):
-    img = pexif.JpegFile.fromString(in_path)
+import StringIO
+def set_exif_subject_location(xy, fd_source, out_path):
+    try:
+        img = pexif.JpegFile.fromFd(fd_source)
+    except pexif.JpegFile.InvalidFile, e:
+        print "reading exif failed"
+        im = Image.open(fd_source)
+        #new_file_without_exif = StringIO.StringIO()
+        new_file_without_exif = StringIO.StringIO()
+        im.save(new_file_without_exif, format="JPEG")
+        img = pexif.JpegFile.fromString(new_file_without_exif.getvalue())
+        new_file_without_exif.close()
     img.exif.primary.ExtendedEXIF.SubjectLocation = xy
     img.writeFile(out_path)

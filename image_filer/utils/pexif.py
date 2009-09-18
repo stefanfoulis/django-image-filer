@@ -576,12 +576,6 @@ class FujiIFD(IfdData):
         data, next_offset = IfdData.getdata(self, e, 12, last)
         return pre_data + data, next_offset + offset
 
-class FakeIFD(IfdData):
-    name = 'Fake'
-    def __init__(self):
-        pass
-    def getdata(self, e, offset, last = 0):
-        return ''
 
 def ifd_maker_note(e, offset, exif_file, mode, data):
     """Factory function for creating MakeNote entries"""
@@ -962,7 +956,7 @@ class JpegFile:
 
     def fromFd(fd, mode="rw"):
         """Return a new JpegFile object taking data from a file object."""
-        return JpegFile(fd, "fd <%d>" % fd.fileno(), mode=mode)
+        return JpegFile(fd, "fd <>", mode=mode)
     fromFd = staticmethod(fromFd)
 
     class InvalidFile(Exception):

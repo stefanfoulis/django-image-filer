@@ -16,6 +16,7 @@ from managers import FolderManager
 from django.db.models.signals import post_init
 from django.utils.functional import curry
 from django.core.urlresolvers import reverse
+import StringIO
 
 
 from django.contrib.auth import models as auth_models
@@ -246,9 +247,9 @@ class Image(AbstractFile):
             exif_sl = self.exif.get('SubjectLocation', None)
             if self.file and not sl == exif_sl:
                 self.file.open()
-                old_file = self.file.read()
+                fd_source = StringIO.StringIO(self.file.read())
                 self.file.close()
-                set_exif_subject_location(sl, old_file, self.file.path)
+                set_exif_subject_location(sl, fd_source, self.file.path)
                 
         super(Image, self).save(*args, **kwargs)
     def _get_exif(self):
