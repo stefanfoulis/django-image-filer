@@ -1,13 +1,15 @@
 syntax: glob
 *.pyc
+*.pyo
+*~
+.installed.cfg
+bin
+develop-eggs
+dist
+downloads
+eggs
+parts
+src/*.egg-info
 .DS_Store
 .project
 .pydevproject
-syntax: glob
-*~
-syntax: regexp
-^example/django_project/media/generated$
-syntax: regexp
-^example/django_project/media/catalogue$
-syntax: regexp
-^example/image_filer_example$
