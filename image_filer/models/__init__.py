@@ -316,7 +316,17 @@ class Image(AbstractFile):
             self._thumbnails = tns
         return self._thumbnails
     def __unicode__(self):
-        return self.label
+        # this simulates the way a file field works and
+        # allows the sorl thumbnail tag to use the Image model
+        # as if it was a image field
+        try:
+            rel_url = u"%s" % self.file.url
+            rel_url = rel_url.lstrip('/media/')
+            print "    image unicode returning %s" % rel_url
+            return rel_url
+        except:
+            print "image unicode failed"
+            return ""
 
 
 class FolderPermissionManager(models.Manager):
@@ -505,14 +515,26 @@ class FolderRoot(DummyFolder):
     parent_url = None
 
 if 'cms' in settings.INSTALLED_APPS:
-    from cms.models import CMSPlugin
+    from cms.models import CMSPlugin, Page
     from sorl.thumbnail.main import DjangoThumbnail
     class ImagePublication(CMSPlugin):
+        LEFT = "left"
+        RIGHT = "right"
+        FLOAT_CHOICES = ((LEFT, _("left")),
+                         (RIGHT, _("right")),
+                         )
         image = ImageFilerModelImageField()
         alt_text = models.CharField(null=True, blank=True, max_length=255)
         caption = models.CharField(null=True, blank=True, max_length=255)
         width = models.PositiveIntegerField(null=True, blank=True)
         height = models.PositiveIntegerField(null=True, blank=True)
+        
+        longdesc = models.TextField(null=True, blank=True)
+        free_link = models.CharField(_("link"), max_length=255, blank=True, null=True, help_text=_("if present image will be clickable"))
+        page_link = models.ForeignKey(Page, verbose_name=_("page"), null=True, blank=True, help_text=_("if present image will be clickable"))
+        float = models.CharField(_("side"), max_length=10, blank=True, null=True, choices=FLOAT_CHOICES)
+        
+        
         
         #crop_ax = models.PositiveIntegerField(null=True, blank=True)
         #crop_ay = models.PositiveIntegerField(null=True, blank=True)
@@ -534,6 +556,9 @@ if 'cms' in settings.INSTALLED_APPS:
             else:
                 return u"Image Publication %s" % self.caption
             return ''
+        @property
+        def alt(self):
+            return self.alt_text
     if 'reversion' in settings.INSTALLED_APPS:       
         import reversion 
         reversion.register(ImagePublication, follow=["cmsplugin_ptr"])
