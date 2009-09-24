@@ -7,6 +7,7 @@ from django.contrib.admin.widgets import ForeignKeyRawIdWidget
 from django.core.urlresolvers import reverse
 from django.utils.safestring import mark_safe
 from django.conf import settings
+from sorl.thumbnail.base import ThumbnailException
 
 class ImageFilerImageWidget(ForeignKeyRawIdWidget):
     choices = None
@@ -29,7 +30,10 @@ class ImageFilerImageWidget(ForeignKeyRawIdWidget):
             attrs['class'] = 'vForeignKeyRawIdAdminField' # The JavaScript looks for this hook.
         output = []
         if obj:
-            output.append(u'<img id="%s" src="%s" alt="%s" /> ' % (css_id_thumbnail_img, obj.file.extra_thumbnails['admin_tiny_icon'], obj.label) )
+            try:
+                output.append(u'<img id="%s" src="%s" alt="%s" /> ' % (css_id_thumbnail_img, obj.file.extra_thumbnails['admin_tiny_icon'], obj.label) )
+            except ThumbnailException:
+                pass
             output.append(u'&nbsp;<strong id="%s">%s</strong>' % (css_id_description_txt, obj) )
         else:
             output.append(u'<img id="%s" src="" class="quiet" alt="no image selected">' % css_id_thumbnail_img)

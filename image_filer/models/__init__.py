@@ -322,11 +322,9 @@ class Image(AbstractFile):
         try:
             rel_url = u"%s" % self.file.url
             rel_url = rel_url.lstrip('/media/')
-            print "    image unicode returning %s" % rel_url
             return rel_url
-        except:
-            print "image unicode failed"
-            return ""
+        except Exception, e:
+            return ''
 
 
 class FolderPermissionManager(models.Manager):
@@ -545,10 +543,10 @@ if 'cms' in settings.INSTALLED_APPS:
         show_author = models.BooleanField(default=False)
         show_copyright = models.BooleanField(default=False)
         
-        def url(self):
+        def scaled_image_url(self):
             h = self.height or 128
             w = self.width or 128
-            tn = DjangoThumbnail(self.image.file, (w,h), opts=['crop','upscale'] )
+            tn = unicode(DjangoThumbnail(self.image.file, (w,h), opts=['crop','upscale'] ))
             return tn
         def __unicode__(self):
             if self.image:
@@ -557,9 +555,20 @@ if 'cms' in settings.INSTALLED_APPS:
                 return u"Image Publication %s" % self.caption
             return ''
         @property
-        def alt(self):
-            return self.alt_text
-    if 'reversion' in settings.INSTALLED_APPS:       
-        import reversion 
-        reversion.register(ImagePublication, follow=["cmsplugin_ptr"])
+        def alt(self): return self.alt_text
+        @property
+        def url(self): return self.free_link
+    
+    class ImageFilerTeaser(CMSPlugin):
+        """
+        A Teaser
+        """
+        title = models.CharField(_("title"), max_length=255)
+        image = ImageFilerModelImageField(blank=True, null=True)
+        page_link = models.ForeignKey(Page, verbose_name=_("page"), help_text=_("If present image will be clickable"), blank=True, null=True)
+        url = models.CharField(_("link"), max_length=255, blank=True, null=True, help_text=_("If present image will be clickable."))
+        description = models.TextField(_("description"), blank=True, null=True)
         
+        def __unicode__(self):
+            return self.title
+    
