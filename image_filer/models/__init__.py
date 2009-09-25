@@ -169,7 +169,7 @@ class Image(AbstractFile):
     file = thumbnail_fields.ImageWithThumbnailsField(
                     upload_to=IMAGE_FILER_UPLOAD_ROOT,
                     storage=fs,
-                    height_field='_height_field', width_field='_width_field', 
+                    #height_field='_height_field', width_field='_width_field', # the builtin django width/height sucks, because it throws an exception it the image is missing
                     thumbnail={'size': (50, 50)},
                     extra_thumbnails={
                         'admin_clipboard_icon': {'size': (32,32), 'options': ['crop','upscale']},
@@ -233,24 +233,28 @@ class Image(AbstractFile):
         if not self.contact:
             self.contact = self.owner
         self.has_all_mandatory_data = self._check_validity()
-        if self.subject_location:
-            parts = self.subject_location.split(',')
-            '''
-            ratio = float(self.file.width)/float(SIDEBAR_IMAGE_WIDTH)
-            pos_x = float(parts[0])*ratio
-            pos_y = float(parts[1])*ratio
-            '''
-            pos_x = int(parts[0])
-            pos_y = int(parts[1])
-                                              
-            sl = (int(pos_x), int(pos_y) )
-            exif_sl = self.exif.get('SubjectLocation', None)
-            if self.file and not sl == exif_sl:
-                self.file.open()
-                fd_source = StringIO.StringIO(self.file.read())
-                self.file.close()
-                set_exif_subject_location(sl, fd_source, self.file.path)
-                
+        try:
+            if self.subject_location:
+                parts = self.subject_location.split(',')
+                pos_x = int(parts[0])
+                pos_y = int(parts[1])
+                                                  
+                sl = (int(pos_x), int(pos_y) )
+                exif_sl = self.exif.get('SubjectLocation', None)
+                if self.file and not sl == exif_sl:
+                    self.file.open()
+                    fd_source = StringIO.StringIO(self.file.read())
+                    self.file.close()
+                    set_exif_subject_location(sl, fd_source, self.file.path)
+        except:
+            # probably the image is missing. nevermind
+            pass
+        try:
+            self._width_field = self.file.width
+            self._height_field = self.file.height
+        except:
+            # probably the image is missing. nevermind.
+            pass
         super(Image, self).save(*args, **kwargs)
     def _get_exif(self):
         if hasattr(self, '_exif_cache'):
