@@ -348,21 +348,25 @@ class FolderPermissionManager(models.Manager):
         perms = self.filter(q).order_by('folder__tree_id', 'folder__level', 
                                         'folder__lft')
         for perm in perms:
+            if perm.folder:
+                folder_id = perm.folder.id
+            else:
+                folder_id = None
             if perm.type == FolderPermission.ALL:
                 if getattr(perm, attr):
                     allow_list = list(Folder.objects.all().values_list('id', flat=True))
                 else:
                     return []
             if getattr(perm, attr):
-                if perm.folder.id not in allow_list:
-                    allow_list.append(perm.folder.id)
-                if perm.folder.id in deny_list:
-                    deny_list.remove(perm.folder.id)
+                if folder_id not in allow_list:
+                    allow_list.append(folder_id)
+                if folder_id in deny_list:
+                    deny_list.remove(folder_id)
             else:
-                if perm.folder.id not in deny_list:
-                    deny_list.append(perm.folder.id)
-                if perm.folder.id in allow_list:
-                    allow_list.remove(perm.folder.id)
+                if folder_id not in deny_list:
+                    deny_list.append(folder_id)
+                if folder_id in allow_list:
+                    allow_list.remove(folder_id)
             if perm.type == FolderPermission.CHILDREN:
                 for id in perm.folder.get_descendants().values_list('id', flat=True):
                     if getattr(perm, attr):
