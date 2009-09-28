@@ -11,6 +11,20 @@ class ImagePlugin(CMSPluginBase):
     raw_id_fields = ('image',)
     
     def render(self, context, instance, placeholder):
+        if not instance.width:
+            try:
+                theme = context['theme']
+                width = int(theme.split('_')[0]) * 60
+                if width < 960:
+                    width -= 20
+            except (KeyError, IndexError):
+                width = ''
+        else:
+            width = instance.width
+        if instance.height:
+            height = instance.height
+        else:
+            height = '1000'
         if instance.free_link:
             link = instance.free_link
         elif instance.page_link:
@@ -20,6 +34,7 @@ class ImagePlugin(CMSPluginBase):
         context.update({
             'picture':instance,
             'link':link, 
+            'image_size': u'%sx%s' % (width, height),
             'placeholder':placeholder
         })
         return context
