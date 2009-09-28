@@ -39,7 +39,7 @@ class ImagePlugin(CMSPluginBase):
         })
         return context
     def icon_src(self, instance):
-        return instance.image.file.extra_thumbnails['admin_tiny_icon']
+        return instance.image.thumbnails['admin_tiny_icon']
 plugin_pool.register_plugin(ImagePlugin)
 
 class ImageFilerTeaserPlugin(CMSPluginBase):

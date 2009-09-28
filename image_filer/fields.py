@@ -32,7 +32,7 @@ class ImageFilerImageWidget(ForeignKeyRawIdWidget):
         output = []
         if obj:
             try:
-                output.append(u'<img id="%s" src="%s" alt="%s" /> ' % (css_id_thumbnail_img, obj.file.extra_thumbnails['admin_tiny_icon'], obj.label) )
+                output.append(u'<img id="%s" src="%s" alt="%s" /> ' % (css_id_thumbnail_img, obj.thumbnails['admin_tiny_icon'], obj.label) )
             except ThumbnailException:
                 pass
             output.append(u'&nbsp;<strong id="%s">%s</strong>' % (css_id_description_txt, obj) )
