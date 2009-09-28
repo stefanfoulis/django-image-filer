@@ -31,6 +31,10 @@ IMAGE_FILER_UPLOAD_ROOT = getattr(settings,'IMAGE_FILER_UPLOAD_ROOT', 'catalogue
 from image_filer.models.safe_file_storage import SafeFilenameFileSystemStorage
 fs = SafeFilenameFileSystemStorage()
 
+from django.core.exceptions import ImproperlyConfigured
+if not 'image_filer.context_processors.media' in settings.TEMPLATE_CONTEXT_PROCESSORS: raise ImproperlyConfigured("image_filer needs 'image_filer.context_processors.media' to be in settings.TEMPLATE_CONTEXT_PROCESSORS")
+
+
 class AbstractFile(models.Model):
     """
     Represents a "File-ish" thing that is in a Folder. Any subclasses must
