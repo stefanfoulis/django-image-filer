@@ -325,16 +325,30 @@ class Image(AbstractFile):
                 tns[name] = tn
             self._thumbnails = tns
         return self._thumbnails
+    @property
+    def url(self):
+        '''
+        needed to make this behave like a ImageField
+        '''
+        return self.file.url
+    @property
+    def absolute_image_url(self):
+        return self.url
+    @property
+    def rel_image_url(self):
+        'return the image url relative to MEDIA_URL'
+        try:
+            rel_url = u"%s" % self.file.url
+            if rel_url.startswith('/media/'):
+                before, match, rel_url = rel_url.partition('/media/')
+            return rel_url
+        except Exception, e:
+            return ''
     def __unicode__(self):
         # this simulates the way a file field works and
         # allows the sorl thumbnail tag to use the Image model
         # as if it was a image field
-        try:
-            rel_url = u"%s" % self.file.url
-            rel_url = rel_url.lstrip('/media/')
-            return rel_url
-        except Exception, e:
-            return ''
+        return self.rel_image_url
 
 
 class FolderPermissionManager(models.Manager):
