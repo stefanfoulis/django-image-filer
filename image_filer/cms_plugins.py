@@ -83,3 +83,4 @@ class FolderSlideshowPlugin(ImageFolderPlugin):
         proxy = True
     render_template = "image_filer/slideshow2.html"
 plugin_pool.register_plugin(FolderSlideshowPlugin)
+
