@@ -6,7 +6,7 @@ from image_filer.models import ImagePublication, ImageFilerTeaser, FolderPublica
 class ImagePlugin(CMSPluginBase):
     model = ImagePublication
     name = _("Image (image filer)")
-    render_template = "cms/plugins/picture.html"
+    render_template = "cms/plugins/image.html"
     text_enabled = True
     raw_id_fields = ('image',)
     

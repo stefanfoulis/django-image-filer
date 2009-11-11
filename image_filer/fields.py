@@ -32,9 +32,10 @@ class ImageFilerImageWidget(ForeignKeyRawIdWidget):
         output = []
         if obj:
             try:
-                output.append(u'<img id="%s" src="%s" alt="%s" /> ' % (css_id_thumbnail_img, obj.file.extra_thumbnails['admin_tiny_icon'], obj.label) )
+                output.append(u'<img id="%s" src="%s" alt="%s" /> ' % (css_id_thumbnail_img, obj.thumbnails['admin_tiny_icon'], obj.label) )
             except ThumbnailException:
-                pass
+                # this means that the image is missing on the filesystem
+                output.append(u'<img id="%s" src="%s" alt="%s" /> ' % (css_id_thumbnail_img, '', 'image missing!') )
             output.append(u'&nbsp;<strong id="%s">%s</strong>' % (css_id_description_txt, obj) )
         else:
             output.append(u'<img id="%s" src="" class="quiet" alt="no image selected">' % css_id_thumbnail_img)
@@ -44,6 +45,7 @@ class ImageFilerImageWidget(ForeignKeyRawIdWidget):
         output.append('<a href="%s%s" class="related-lookup" id="lookup_id_%s" onclick="return showRelatedObjectLookupPopup(this);"> ' % \
             (related_url, url, name))
         output.append('<img src="%simg/admin/selector-search.gif" width="16" height="16" alt="%s" /></a>' % (settings.ADMIN_MEDIA_PREFIX, _('Lookup')))
+        output.append('''<a href="" class="deletelink" onclick="return removeImageLink('%s');">&nbsp;</a>''' % (css_id,) )
         output.append('</br>')
         super_attrs = attrs.copy()
         output.append( super(ForeignKeyRawIdWidget, self).render(name, value, super_attrs) )
