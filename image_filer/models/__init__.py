@@ -171,18 +171,24 @@ except mptt.AlreadyRegistered:
 
 class Image(AbstractFile):
     SIDEBAR_IMAGE_WIDTH = 210
+    DEFAULT_THUMBNAILS = {
+                        'admin_clipboard_icon': {'size': (32,32), 'options': ['crop','upscale']},
+                        'admin_sidebar_preview': {'size': (SIDEBAR_IMAGE_WIDTH,SIDEBAR_IMAGE_WIDTH), 'options': []},
+                        'admin_directory_listing_icon': {'size': (48,48), 'options': ['crop','upscale']},
+                        'admin_tiny_icon': {'size': (32,32), 'options': ['crop','upscale']},
+                    }
     file_type = 'image'
     file = thumbnail_fields.ImageWithThumbnailsField(
                     upload_to=IMAGE_FILER_UPLOAD_ROOT,
                     storage=fs,
                     #height_field='_height_field', width_field='_width_field', # the builtin django width/height sucks, because it throws an exception it the image is missing
                     thumbnail={'size': (50, 50)},
-                    extra_thumbnails={
-                        'admin_clipboard_icon': {'size': (32,32), 'options': ['crop','upscale']},
-                        'admin_sidebar_preview': {'size': (SIDEBAR_IMAGE_WIDTH,SIDEBAR_IMAGE_WIDTH), 'options': []},
-                        'admin_directory_listing_icon': {'size': (48,48), 'options': ['crop','upscale']},
-                        'admin_tiny_icon': {'size': (32,32), 'options': ['crop','upscale']},
-                    },
+                    #extra_thumbnails={
+                    #    'admin_clipboard_icon': {'size': (32,32), 'options': ['crop','upscale']},
+                    #    'admin_sidebar_preview': {'size': (SIDEBAR_IMAGE_WIDTH,SIDEBAR_IMAGE_WIDTH), 'options': []},
+                    #    'admin_directory_listing_icon': {'size': (48,48), 'options': ['crop','upscale']},
+                    #    'admin_tiny_icon': {'size': (32,32), 'options': ['crop','upscale']},
+                    #},
                     null=True, blank=True,max_length=255)
     _height_field = models.IntegerField(null=True, blank=True) 
     _width_field = models.IntegerField(null=True, blank=True)
@@ -319,11 +325,16 @@ class Image(AbstractFile):
         # to prevent the default errors to 
         # get thrown and to add a default missing
         # image (not yet)
+        #print "getting thumbnails for %s" % self.id
         if not hasattr(self, '_thumbnails'):
             tns = {}
-            for name, tn in self.file.extra_thumbnails.items():
-                tns[name] = tn
+            #for name, tn in self.file.extra_thumbnails.items():
+            #    tns[name] = tn
+            #self._thumbnails = tns
+            for name, opts in Image.DEFAULT_THUMBNAILS.items():
+                tns[name] = unicode(self.file._build_thumbnail(opts))
             self._thumbnails = tns
+            #print tns
         return self._thumbnails
     @property
     def url(self):
@@ -339,8 +350,8 @@ class Image(AbstractFile):
         'return the image url relative to MEDIA_URL'
         try:
             rel_url = u"%s" % self.file.url
-            if rel_url.startswith('/media/'):
-                before, match, rel_url = rel_url.partition('/media/')
+            if rel_url.startswith(settings.MEDIA_URL):
+                before, match, rel_url = rel_url.partition(settings.MEDIA_URL)
             return rel_url
         except Exception, e:
             return ''
@@ -572,13 +583,6 @@ if 'cms' in settings.INSTALLED_APPS:
         
         show_author = models.BooleanField(default=False)
         show_copyright = models.BooleanField(default=False)
-
-        def save(self, *args, **kwargs):
-            # default the publication's size to the image size
-            if self.image and not self.width and not self.height:
-                self.width = self.image.width
-                self.height = self.image.height
-            super(ImagePublication, self).save(*args, **kwargs)
         
         def scaled_image_url(self):
             h = self.height or 128
