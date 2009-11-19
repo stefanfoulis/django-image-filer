@@ -13,9 +13,14 @@ for cms integration:
 Setup
 - add 'image_filer' to INSTALLED_APPS
 - make the directory 'image_filer' (found in image_filer/media/') available in MEDIA_ROOT
-- optional: configure IMAGE_FILER_MEDIA_URL in your project's settings.py to the URL
+  optional: configure IMAGE_FILER_MEDIA_URL in your project's settings.py to the URL
   where image_filer-media can be found (usually MEDIA_URL+'image_filer/' which is the
   default)
+- for image upload to work, create the folder "catalogue" in your MEDIA_ROOT and make
+  it writable to the web server (www-data on linux/unix). Image filer will try to do this
+  for you, but if the MEDIA_ROOT folder is not writable (recomended), it will fail and you
+  will see "IO ERROR" in the clipboard.
+  optional: configure IMAGE_FILER_UPLOAD_ROOT to define an alternative upload directory.
 
 
 Custom plugins using image folders
