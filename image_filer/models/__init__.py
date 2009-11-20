@@ -325,7 +325,7 @@ class Image(AbstractFile):
         # to prevent the default errors to 
         # get thrown and to add a default missing
         # image (not yet)
-        #print "getting thumbnails for %s" % self.id
+        print "getting thumbnails for %s" % self.id
         if not hasattr(self, '_thumbnails'):
             tns = {}
             #for name, tn in self.file.extra_thumbnails.items():
@@ -334,7 +334,7 @@ class Image(AbstractFile):
             for name, opts in Image.DEFAULT_THUMBNAILS.items():
                 tns[name] = unicode(self.file._build_thumbnail(opts))
             self._thumbnails = tns
-            #print tns
+            print tns
         return self._thumbnails
     @property
     def url(self):
@@ -350,8 +350,8 @@ class Image(AbstractFile):
         'return the image url relative to MEDIA_URL'
         try:
             rel_url = u"%s" % self.file.url
-            if rel_url.startswith(settings.MEDIA_URL):
-                before, match, rel_url = rel_url.partition(settings.MEDIA_URL)
+            if rel_url.startswith('/media/'):
+                before, match, rel_url = rel_url.partition('/media/')
             return rel_url
         except Exception, e:
             return ''
@@ -583,6 +583,13 @@ if 'cms' in settings.INSTALLED_APPS:
         
         show_author = models.BooleanField(default=False)
         show_copyright = models.BooleanField(default=False)
+
+        def save(self, *args, **kwargs):
+            # default the publication's size to the image size
+            if self.image and not self.width and not self.height:
+                self.width = self.image.width
+                self.height = self.image.height
+            super(ImagePublication, self).save(*args, **kwargs)
         
         def scaled_image_url(self):
             h = self.height or 128
