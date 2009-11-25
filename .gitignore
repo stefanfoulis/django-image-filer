@@ -8,7 +8,9 @@ dist
 downloads
 eggs
 parts
-src/*.egg-info
+*.egg-info
+*.egg
+build
 .DS_Store
 .project
 .pydevproject
