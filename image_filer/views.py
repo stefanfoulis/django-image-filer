@@ -213,50 +213,52 @@ def ajax_upload(request, folder_id=None):
     #print request.POST
     # flashcookie-hack (flash does not submit the cookie, so we send the
     # django sessionid over regular post
-
-    engine = __import__(settings.SESSION_ENGINE, {}, {}, [''])
-    #session_key = request.POST.get('jsessionid')
-    session_key = request.POST.get('jsessionid')
-    request.session = engine.SessionStore(session_key)
-    request.user = User.objects.get(id=request.session['_auth_user_id'])
-    #print request.session['_auth_user_id']
-    #print session_key
-    #print engine
-    #print request.user
-    #print request.session
-    # upload and save the file
-    if not request.method == 'POST':
-        return HttpResponse("must be POST")
-    original_filename = request.POST.get('Filename')
-    file = request.FILES.get('Filedata')
-    #print request.FILES
-    #print original_filename, file
-    clipboard, was_clipboard_created = Clipboard.objects.get_or_create(user=request.user)
-    files = generic_handle_file(file, original_filename)
-    file_items = []
-    for ifile, iname in files:
-        try:
-            iext = os.path.splitext(iname)[1].lower()
-        except:
-            iext = ''
-        #print "extension: ", iext
-        if iext in ['.jpg','.jpeg','.png','.gif']:
-            imageform = UploadFileForm({'original_filename':iname,'owner': request.user.pk}, {'file':ifile})
-            if imageform.is_valid():
-                #print 'imageform is valid'
-                try:
-                    image = imageform.save(commit=False)
-                    image.save()
-                    file_items.append(image)
-                except Exception, e:
-                    print e
-                #print "save %s" % image
-                bi = ClipboardItem(clipboard=clipboard, file=image)
-                bi.save()
-                #sprint image
-            else:
-                pass#print imageform.errors
-            
+    try:
+        engine = __import__(settings.SESSION_ENGINE, {}, {}, [''])
+        #session_key = request.POST.get('jsessionid')
+        session_key = request.POST.get('jsessionid')
+        request.session = engine.SessionStore(session_key)
+        request.user = User.objects.get(id=request.session['_auth_user_id'])
+        #print request.session['_auth_user_id']
+        #print session_key
+        #print engine
+        #print request.user
+        #print request.session
+        # upload and save the file
+        if not request.method == 'POST':
+            return HttpResponse("must be POST")
+        original_filename = request.POST.get('Filename')
+        file = request.FILES.get('Filedata')
+        #print request.FILES
+        #print original_filename, file
+        clipboard, was_clipboard_created = Clipboard.objects.get_or_create(user=request.user)
+        files = generic_handle_file(file, original_filename)
+        file_items = []
+        for ifile, iname in files:
+            try:
+                iext = os.path.splitext(iname)[1].lower()
+            except:
+                iext = ''
+            #print "extension: ", iext
+            if iext in ['.jpg','.jpeg','.png','.gif']:
+                imageform = UploadFileForm({'original_filename':iname,'owner': request.user.pk}, {'file':ifile})
+                if imageform.is_valid():
+                    #print 'imageform is valid'
+                    try:
+                        image = imageform.save(commit=False)
+                        image.save()
+                        file_items.append(image)
+                    except Exception, e:
+                        print e
+                    #print "save %s" % image
+                    bi = ClipboardItem(clipboard=clipboard, file=image)
+                    bi.save()
+                    #sprint image
+                else:
+                    pass#print imageform.errors
+    except Exception, e:
+        print e
+        raise e
     return render_to_response('image_filer/include/clipboard_item_rows.html', {'items': file_items }, context_instance=RequestContext(request))
 
 @login_required
